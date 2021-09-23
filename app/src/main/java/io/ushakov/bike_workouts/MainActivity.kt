@@ -29,27 +29,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun AppBar(scaffoldState: ScaffoldState) {
-        val scope = rememberCoroutineScope()
-
-        BottomAppBar(
-            cutoutShape = RoundedCornerShape(50)
-        ) {
-            IconButton(onClick = {
-                scope.launch {
-                    scaffoldState.drawerState.open()
-                }
-            }) {
-                Icon(Icons.Filled.AccountCircle, stringResource(R.string.account_button_label))
-            }
-        }
-    }
-
 
     @Composable
     fun View() {
-
         Surface(
             modifier = Modifier
                 .fillMaxSize()
@@ -74,6 +56,28 @@ class MainActivity : ComponentActivity() {
                 },
                 scaffoldState = scaffoldState
             ) { }
+        }
+    }
+
+    @Composable
+    fun AppBar(scaffoldState: ScaffoldState) {
+        val scope = rememberCoroutineScope()
+
+        BottomAppBar(
+            cutoutShape = RoundedCornerShape(50)
+        ) {
+            UserIconButton(scaffoldState = scaffoldState, scope = scope)
+        }
+    }
+
+    @Composable
+    fun UserIconButton(scaffoldState: ScaffoldState, scope: CoroutineScope) {
+        IconButton(onClick = {
+            scope.launch {
+                scaffoldState.drawerState.open()
+            }
+        }) {
+            Icon(Icons.Filled.AccountCircle, stringResource(R.string.account_button_label))
         }
     }
 
