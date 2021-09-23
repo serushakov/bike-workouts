@@ -10,10 +10,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
+import kotlinx.coroutines.*
 
 
 class MainActivity : ComponentActivity() {
@@ -28,11 +30,17 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun AppBar() {
+    fun AppBar(scaffoldState: ScaffoldState) {
+        val scope = rememberCoroutineScope()
+
         BottomAppBar(
             cutoutShape = RoundedCornerShape(50)
         ) {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = {
+                scope.launch {
+                    scaffoldState.drawerState.open()
+                }
+            }) {
                 Icon(Icons.Filled.AccountCircle, stringResource(R.string.account_button_label))
             }
         }
@@ -41,21 +49,31 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun View() {
+
         Surface(
             modifier = Modifier
                 .fillMaxSize()
         ) {
+            val scaffoldState = ScaffoldState(
+                DrawerState(DrawerValue.Closed),
+                snackbarHostState = SnackbarHostState()
+            )
+
             Scaffold(
-                bottomBar = { AppBar() },
+                bottomBar = { AppBar(scaffoldState) },
                 floatingActionButton = {
-                    FloatingActionButton(onClick = { /*TODO*/ }) {
+                    FloatingActionButton(onClick = {
+                    }) {
                         Icon(Icons.Filled.Add, stringResource(R.string.start_workout_label))
                     }
                 },
                 isFloatingActionButtonDocked = true,
                 floatingActionButtonPosition = FabPosition.Center,
-
-                ) { }
+                drawerContent = {
+                    Text("Hello")
+                },
+                scaffoldState = scaffoldState
+            ) { }
         }
     }
 
