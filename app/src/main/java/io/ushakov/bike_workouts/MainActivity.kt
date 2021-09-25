@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.ushakov.bike_workouts.ui.views.BluetoothSettings
 import io.ushakov.bike_workouts.ui.views.Main
+import io.ushakov.bike_workouts.view_models.BluetoothSettingsViewModel
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
 
 
@@ -31,7 +32,12 @@ class MainActivity : ComponentActivity() {
 
         NavHost(navController = navController, startDestination = "main") {
             composable("main") { Main(navController) }
-            composable("bluetooth_settings") { BluetoothSettings(navController) }
+            composable("bluetooth_settings") {
+                BluetoothSettings(
+                    navController,
+                    BluetoothSettingsViewModel(application)
+                )
+            }
         }
     }
 
