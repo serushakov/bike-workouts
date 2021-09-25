@@ -8,6 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ interface BluetoothSettingsViewModelInterface {
     val isScanning: LiveData<Boolean>
     val deviceList: LiveData<List<ScanResult>>
     fun startScan()
+    fun stopScan()
 }
 
 @Composable
@@ -44,7 +46,13 @@ fun BluetoothSettings(
 
 @Composable
 internal fun View(viewModel: BluetoothSettingsViewModelInterface) {
-    viewModel.startScan()
+    DisposableEffect(viewModel) {
+        viewModel.startScan()
+
+        onDispose {
+            viewModel.stopScan()
+        }
+    }
 
     ConstraintLayout(
         modifier = Modifier.padding(16.dp)
@@ -111,6 +119,7 @@ internal fun BluetoothSettingsPreview() {
             }
             override val deviceList: LiveData<List<ScanResult>> = MutableLiveData(listOf())
             override fun startScan() {}
+            override fun stopScan() {}
         })
     }
 }

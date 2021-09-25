@@ -10,16 +10,22 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.ushakov.bike_workouts.ui.views.BluetoothSettings
 import io.ushakov.bike_workouts.ui.views.Main
 import io.ushakov.bike_workouts.view_models.BluetoothSettingsViewModel
+import io.ushakov.bike_workouts.view_models.BluetoothSettingsViewModelFactory
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
 
 
 class MainActivity : ComponentActivity() {
+    private var bluetoothSettingsViewModel: BluetoothSettingsViewModel? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -44,7 +50,11 @@ class MainActivity : ComponentActivity() {
             composable("bluetooth_settings") {
                 BluetoothSettings(
                     navController,
-                    BluetoothSettingsViewModel(application, bluetoothManager.adapter)
+                    viewModel<BluetoothSettingsViewModel>(
+                        factory = BluetoothSettingsViewModelFactory(
+                            bluetoothManager.adapter
+                        )
+                    )
                 )
             }
         }
