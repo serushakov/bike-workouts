@@ -20,6 +20,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import io.ushakov.bike_workouts.R
+import io.ushakov.bike_workouts.ui.components.BleListItem
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
 import io.ushakov.myapplication.ui.theme.Typography
 
@@ -78,7 +79,9 @@ fun LiveDataDeviceList(modifier: Modifier, list: LiveData<List<ScanResult>>) {
 fun DeviceList(modifier: Modifier, list: List<ScanResult>) {
     LazyColumn(modifier = modifier) {
         items(items = list) { item ->
-            Text(item.device.name)
+            BleListItem(deviceName = item.device.name) {
+
+            }
         }
     }
 }

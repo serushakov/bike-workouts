@@ -6,4 +6,5 @@
     <string name="bluetooth_setup_title">Bluetooth Setup</string>
     <string name="navigation_back">Back</string>
     <string name="bluetooth_device_search_list_title">Discovered devices</string>
+    <string name="device_list_item_button_label">Pair</string>
 </resources>
