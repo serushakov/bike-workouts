@@ -13,4 +13,8 @@ class UserRepository(private val userDao: UserDao) {
     suspend fun insert(user: User) = withContext(Dispatchers.IO) {
         return@withContext userDao.insert(user)
     }
+
+    fun getUserByFirstNameAndLastName(firstName: String, lastName: String): User {
+        return userDao.getUserByFirstNameAndLastName(firstName, lastName)
+    }
 }
