@@ -1,7 +1,9 @@
 package io.ushakov.bike_workouts.db.entity
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 import org.jetbrains.annotations.NotNull
 
 @Entity
@@ -29,4 +31,16 @@ data class User (
     ) : this(
         0,firstName, lastName, height, weight
     )
+}
+
+class UserWorkout {
+
+    @Embedded
+    var workout: Workout? = null
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "userId"
+    )
+    var workouts: List<Workout>? = null
 }

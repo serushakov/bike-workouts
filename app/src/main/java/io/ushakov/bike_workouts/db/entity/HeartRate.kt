@@ -1,10 +1,21 @@
 package io.ushakov.bike_workouts.db.entity
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
 import org.jetbrains.annotations.NotNull
 
-@Entity
+@Entity(
+    foreignKeys = [
+        ForeignKey(
+            entity = Workout::class,
+            onDelete = CASCADE,
+            parentColumns = ["id"],
+            childColumns = ["workoutId"]
+        )
+    ]
+)
 data class HeartRate(
     @PrimaryKey(autoGenerate = true)
     val id: Long,

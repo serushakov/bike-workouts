@@ -1,11 +1,20 @@
 package io.ushakov.bike_workouts.db.entity
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.*
+import androidx.room.ForeignKey.CASCADE
 import org.jetbrains.annotations.NotNull
 import java.util.*
 
-@Entity
+@Entity(
+    foreignKeys = [
+        ForeignKey(
+            entity = User::class,
+            onDelete = CASCADE,
+            parentColumns = ["id"],
+            childColumns = ["userId"]
+        )
+    ]
+)
 data class Workout(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
@@ -25,4 +34,39 @@ data class Workout(
     ) : this(
         0, userId, title, type, startAt, finishAt
     )
+}
+
+class WorkoutHeartRate {
+
+    @Embedded
+    var heartRate: HeartRate? = null
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "workoutId"
+    )
+    var heartRates: List<HeartRate>? = null
+}
+
+class WorkoutLocation {
+
+    @Embedded
+    var location: Location? = null
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "workoutId"
+    )
+    var locations: List<Location>? = null
+}
+
+class WorkoutSummary {
+
+    @Embedded
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "workoutId"
+    )
+    var summary: Summary? = null
+
 }
