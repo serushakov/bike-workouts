@@ -29,7 +29,6 @@ fun BleListItem(
     buttonStatus: ButtonStatus,
     onPairButtonClick: () -> Unit,
 ) {
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier

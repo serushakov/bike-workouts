@@ -3,20 +3,20 @@ package io.ushakov.bike_workouts
 import android.content.Context
 import android.util.Log
 import com.polidea.rxandroidble2.RxBleClient
+import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
+import com.polidea.rxandroidble2.Timeout
 import io.reactivex.disposables.Disposable
 import io.ushakov.bike_workouts.util.Constants
+import java.util.concurrent.TimeUnit
 
 class HeartRateDeviceManager(context: Context) {
     private var bleClient = RxBleClient.create(context)
     private var device: RxBleDevice? = null
+    private var connection: RxBleConnection? = null
     private val callbacks: MutableSet<(value: Int) -> Unit> = mutableSetOf()
     private var notificationsDisposable: Disposable? = null
 
-    var deviceAddress: String = ""
-        set(value) {
-            device = bleClient.getBleDevice(value)
-        }
 
     class DeviceNotInitializedError : Throwable() {
         override fun getLocalizedMessage(): String {
@@ -37,16 +37,16 @@ class HeartRateDeviceManager(context: Context) {
     }
 
     private fun setupNotifications() {
-        notificationsDisposable = device!!.establishConnection(false)
-            .flatMap { it.setupNotification(Constants.HEART_RATE_CHARACTERISTIC_UUID) }
-            .flatMap { it }
-            .subscribe({ value ->
-                val decodedHeartRate = decodeHeartRate(value)
+        notificationsDisposable =
+            connection!!.setupNotification(Constants.HEART_RATE_CHARACTERISTIC_UUID)
+                .flatMap { it }
+                .subscribe({ value ->
+                    val decodedHeartRate = decodeHeartRate(value)
 
-                sendUpdates(decodedHeartRate)
-            }) { throwable ->
-                Log.d("HeartRateDeviceManager", throwable.localizedMessage.toString())
-            }
+                    sendUpdates(decodedHeartRate)
+                }) { throwable ->
+                    Log.d("HeartRateDeviceManager", throwable.localizedMessage.toString())
+                }
     }
 
     private fun decodeHeartRate(data: ByteArray): Int {
@@ -70,11 +70,24 @@ class HeartRateDeviceManager(context: Context) {
         for (callback in callbacks) callback(heartRate)
     }
 
+    fun setupDevice(
+        address: String,
+        success: (RxBleDevice) -> Unit,
+        error: (Throwable) -> Unit,
+    ): Disposable {
+        device = bleClient.getBleDevice(address)
 
-    fun hasDevice(): Boolean {
-        return device != null
+        return device!!
+            .establishConnection(false, Timeout(5, TimeUnit.SECONDS))
+            .subscribe({
+                success(device!!)
+                connection = it
+            }, error)
     }
 
+    fun getDevice() = device
+
+    fun hasDevice() = device != null
 
     fun subscribe(callback: (value: Int) -> Unit): Disposable {
         if (!hasDevice()) throw DeviceNotInitializedError()

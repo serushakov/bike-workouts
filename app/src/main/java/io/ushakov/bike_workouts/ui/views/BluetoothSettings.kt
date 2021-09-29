@@ -1,84 +1,187 @@
 package io.ushakov.bike_workouts.ui.views
 
-import android.bluetooth.le.ScanResult
 import android.os.ParcelUuid
 import android.util.Log
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.polidea.rxandroidble2.RxBleClient
-import com.polidea.rxandroidble2.Timeout
+import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.scan.ScanFilter
+import com.polidea.rxandroidble2.scan.ScanResult
 import com.polidea.rxandroidble2.scan.ScanSettings
-import io.ushakov.bike_workouts.BluetoothService
-import io.ushakov.bike_workouts.HeartRateDeviceManager
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.ui.components.BleListItem
 import io.ushakov.bike_workouts.ui.components.ButtonStatus
-import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
+import io.ushakov.bike_workouts.ui.theme.Blue800
+import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.myapplication.ui.theme.Typography
 import java.util.*
-import java.util.concurrent.TimeUnit
 
-
-interface BluetoothSettingsViewModelInterface {
-    val isScanning: LiveData<Boolean>
-    val deviceList: LiveData<List<ScanResult>>
-    fun startScan()
-    fun stopScan()
-}
-
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
 @Composable
 fun BluetoothSettings(
     navController: NavController,
-    onDevicePair: (address: String) -> Unit,
+    isPairing: Boolean,
+    pairingDeviceAddress: String?,
+    pairedDevice: RxBleDevice?,
+
+    onDevicePair: (deviceAddress: String) -> Unit,
 ) {
     Scaffold(
         topBar = { BluetoothSettingsAppBar(navController) }
     ) {
-        View(onDevicePair)
+        View(onDevicePair, isPairing, pairingDeviceAddress, pairedDevice)
     }
 }
 
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
 @Composable
-internal fun View(onDevicePair: (deviceAddress: String) -> Unit) {
-    ConstraintLayout(
+internal fun View(
+    onDevicePair: (deviceAddress: String) -> Unit,
+    isPairing: Boolean,
+    pairingDeviceAddress: String?,
+    pairedDevice: RxBleDevice?,
+) {
+    Column(
         modifier = Modifier.padding(16.dp)
     ) {
-        val (listTitle, list) = createRefs()
-        Text(
-            text = stringResource(R.string.bluetooth_device_search_list_title).uppercase(),
-            modifier = Modifier.constrainAs(listTitle) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-            },
-            style = Typography.overline
-        )
 
-        LiveDataDeviceList(modifier = Modifier.constrainAs(list) {
-            top.linkTo(listTitle.bottom)
-            bottom.linkTo(parent.bottom)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-        }, onDevicePair)
+        if (pairedDevice != null) {
+            Row {
+                ConnectedDevice(device = pairedDevice)
+            }
+        } else {
+            DeviceList(
+                onDevicePair,
+                isPairing,
+                pairingDeviceAddress,
+            )
+        }
     }
 }
 
 @Composable
-fun LiveDataDeviceList(modifier: Modifier, onDevicePair: (deviceAddress: String) -> Unit) {
+fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text.uppercase(),
+        modifier = modifier,
+        style = Typography.overline,
+        color = Blue800
+    )
+    Spacer(Modifier.height(8.dp))
+}
+
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
+@Composable
+fun ConnectedDevice(device: RxBleDevice?, modifier: Modifier = Modifier) {
+    val (showButton, setShowButton) = remember { mutableStateOf(false) }
+
+    Column(modifier) {
+        SectionTitle(text = "Connected device")
+        Card(elevation = 8.dp,
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { setShowButton(!showButton) }) {
+            Column(Modifier.padding(all = 16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Favorite, "Icon", tint = Color.Red)
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(device?.name ?: "DeviceName", style = Typography.h6)
+                        CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                            Text((device?.macAddress ?: "Address").capitalize(),
+                                style = Typography.caption)
+                        }
+                    }
+                    Spacer(Modifier.weight(1f, true))
+                    Icon(Icons.Default.Check, "Check icon", tint = Color.Green)
+                }
+                AnimatedVisibility(visible = showButton,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()) {
+                    Spacer(Modifier.height(16.dp))
+                }
+
+                Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                    AnimatedVisibility(visible = showButton,
+                        enter = expandVertically(),
+                        exit = shrinkVertically()) {
+                        Button(onClick = {}) {
+                            Text("Unpair")
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+@Composable
+fun DeviceList(
+    onDevicePair: (deviceAddress: String) -> Unit,
+    isPairing: Boolean,
+    pairingDeviceAddress: String?,
+    modifier: Modifier = Modifier,
+) {
+    val deviceList = rememberDeviceList()
+
+    val workoutsList =
+        Column {
+            SectionTitle(text = stringResource(R.string.bluetooth_device_search_list_title))
+
+            LazyColumn(modifier = modifier) {
+                items(items = deviceList) { item ->
+                    BleListItem(
+                        deviceName = item.bleDevice.name ?: "No name",
+                        when {
+                            item.bleDevice.macAddress == pairingDeviceAddress && isPairing -> ButtonStatus.PAIRING
+                            isPairing -> ButtonStatus.DISABLED
+                            else -> ButtonStatus.DEFAULT
+                        }) {
+
+                        onDevicePair(item.bleDevice.macAddress)
+                    }
+                }
+            }
+        }
+
+}
+
+
+@Composable
+fun BluetoothSettingsAppBar(navController: NavController) {
+    TopAppBar(
+        title = { Text(stringResource(R.string.bluetooth_setup_title)) },
+        navigationIcon = {
+            IconButton(onClick = {
+                navController.popBackStack()
+            }) {
+                Icon(Icons.Default.ArrowBack, stringResource(R.string.navigation_back))
+            }
+        },
+    )
+}
+
+@Composable
+fun rememberDeviceList(): List<ScanResult> {
     val context = LocalContext.current
     val rxBleClient = remember {
         derivedStateOf {
@@ -86,7 +189,7 @@ fun LiveDataDeviceList(modifier: Modifier, onDevicePair: (deviceAddress: String)
         }
     }
 
-    var deviceList by remember { mutableStateOf(listOf<com.polidea.rxandroidble2.scan.ScanResult>()) }
+    var deviceList by remember { mutableStateOf(listOf<ScanResult>()) }
 
     DisposableEffect(rxBleClient) {
         val settings = ScanSettings
@@ -97,7 +200,7 @@ fun LiveDataDeviceList(modifier: Modifier, onDevicePair: (deviceAddress: String)
         val filter = ScanFilter
             .Builder()
             .setServiceUuid(
-                ParcelUuid(BluetoothService.uuidHeartRateMeasurement)
+                ParcelUuid(Constants.HEART_RATE_SERVICE_UUID)
             )
             .build()
 
@@ -121,70 +224,5 @@ fun LiveDataDeviceList(modifier: Modifier, onDevicePair: (deviceAddress: String)
         }
     }
 
-
-    DeviceList(modifier, list = deviceList, onDevicePair)
-}
-
-@Composable
-fun DeviceList(
-    modifier: Modifier,
-    list: List<com.polidea.rxandroidble2.scan.ScanResult>,
-    onDevicePair: (address: String) -> Unit,
-) {
-    val context = LocalContext.current
-    val bleClient by remember { mutableStateOf(RxBleClient.create(context)) }
-    val (deviceAddress, setDeviceAddress) = remember { mutableStateOf<String?>(null) }
-    val (isConnecting, setIsConnecting) = remember { mutableStateOf(false) }
-    val (connectionSuccess, setConnectionSuccess) = remember { mutableStateOf(false) }
-    val (error, setError) = remember { mutableStateOf<Throwable?>(null) }
-
-
-    DisposableEffect(deviceAddress) {
-        if (deviceAddress == null) return@DisposableEffect onDispose { }
-
-        HeartRateDeviceManager.getInstance().deviceAddress = deviceAddress
-
-        val disposable = HeartRateDeviceManager.getInstance().subscribe { value ->
-            Log.d("HR", value.toString())
-        }
-
-        onDispose { disposable.dispose() }
-    }
-
-    LazyColumn(modifier = modifier) {
-        items(items = list) { item ->
-            BleListItem(
-                deviceName = item.bleDevice.name ?: "No name",
-                when {
-                    item.bleDevice.macAddress == deviceAddress -> ButtonStatus.PAIRING
-                    isConnecting -> ButtonStatus.DISABLED
-                    bleClient.bondedDevices.any { it.macAddress === item.bleDevice.macAddress } || connectionSuccess && item.bleDevice.macAddress == deviceAddress -> ButtonStatus.PAIRED
-                    else -> ButtonStatus.DEFAULT
-                }) {
-                setDeviceAddress(item.bleDevice.macAddress)
-            }
-        }
-    }
-}
-
-@Composable
-fun BluetoothSettingsAppBar(navController: NavController) {
-    TopAppBar(
-        title = { Text(stringResource(R.string.bluetooth_setup_title)) },
-        navigationIcon = {
-            IconButton(onClick = {
-                navController.popBackStack()
-            }) {
-                Icon(Icons.Default.ArrowBack, stringResource(R.string.navigation_back))
-            }
-        },
-    )
-}
-
-@Preview(widthDp = 480, heightDp = 840)
-@Composable
-internal fun BluetoothSettingsPreview() {
-    BikeWorkoutsTheme {
-        BluetoothSettings(rememberNavController()) {}
-    }
+    return deviceList
 }
