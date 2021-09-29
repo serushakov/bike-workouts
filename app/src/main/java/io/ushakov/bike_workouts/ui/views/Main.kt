@@ -21,7 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun Main(navController: NavController) {
+fun Main(navController: NavController, onServiceStartButtonClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxSize()
@@ -45,7 +45,11 @@ fun Main(navController: NavController) {
                 Text("Hello")
             },
             scaffoldState = scaffoldState
-        ) { }
+        ) {
+            Button(onClick = onServiceStartButtonClick) {
+                Text("Start service")
+            }
+        }
     }
 }
 
@@ -86,6 +90,6 @@ fun SettingsButton(navController: NavController) {
 @Composable
 internal fun MainPreview() {
     BikeWorkoutsTheme {
-        Main(rememberNavController())
+        Main(rememberNavController()) {}
     }
 }

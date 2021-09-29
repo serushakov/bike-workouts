@@ -1,31 +1,28 @@
 package io.ushakov.bike_workouts
 
 import android.Manifest
+import android.app.ActivityManager
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.polidea.rxandroidble2.RxBleClient
+import io.ushakov.bike_workouts.WorkoutService.Companion.ACTION_STOP
 import io.ushakov.bike_workouts.ui.views.BluetoothSettings
 import io.ushakov.bike_workouts.ui.views.Main
-import io.ushakov.bike_workouts.view_models.BluetoothSettingsViewModel
-import io.ushakov.bike_workouts.view_models.BluetoothSettingsViewModelFactory
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
 
 
 class MainActivity : ComponentActivity() {
-    private var bluetoothSettingsViewModel: BluetoothSettingsViewModel? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -34,6 +31,8 @@ class MainActivity : ComponentActivity() {
                 View()
             }
         }
+
+        Log.d("MainActivity", ServiceStatus.IS_WORKOUT_SERVICE_RUNNING.toString())
     }
 
 
@@ -46,18 +45,30 @@ class MainActivity : ComponentActivity() {
         requestPermissions(bluetoothAdapter = bluetoothManager.adapter)
 
         NavHost(navController = navController, startDestination = "main") {
-            composable("main") { Main(navController) }
+            composable("main") {
+                Main(navController) {
+                    if (ServiceStatus.IS_WORKOUT_SERVICE_RUNNING) {
+                        stopWorkoutService()
+                    } else {
+                        startWorkoutService()
+                    }
+                }
+            }
             composable("bluetooth_settings") {
                 BluetoothSettings(
-                    navController,
-                    viewModel<BluetoothSettingsViewModel>(
-                        factory = BluetoothSettingsViewModelFactory(
-                            bluetoothManager.adapter
-                        )
-                    )
+                    navController
                 )
             }
         }
+    }
+
+    private fun stopWorkoutService() {
+        val intentStop = Intent(this, WorkoutService::class.java)
+        stopService(intentStop)
+    }
+
+    private fun startWorkoutService() {
+        startService(Intent(this, WorkoutService::class.java))
     }
 
 
