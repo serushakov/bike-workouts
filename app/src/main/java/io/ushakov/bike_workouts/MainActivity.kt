@@ -20,19 +20,20 @@ import io.ushakov.bike_workouts.WorkoutService.Companion.ACTION_STOP
 import io.ushakov.bike_workouts.ui.views.BluetoothSettings
 import io.ushakov.bike_workouts.ui.views.Main
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
+import android.content.SharedPreferences
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        HeartRateDeviceManager.initialize(applicationContext)
+
         setContent {
             BikeWorkoutsTheme {
                 View()
             }
         }
-
-        Log.d("MainActivity", ServiceStatus.IS_WORKOUT_SERVICE_RUNNING.toString())
     }
 
 
@@ -55,11 +56,20 @@ class MainActivity : ComponentActivity() {
                 }
             }
             composable("bluetooth_settings") {
-                BluetoothSettings(
-                    navController
-                )
+                BluetoothSettings(navController) { deviceAddress ->
+                    saveDeviceAddress(deviceAddress)
+                    Log.d("MainActivity", deviceAddress)
+                }
             }
         }
+    }
+
+    private fun saveDeviceAddress(address: String) {
+        val sharedPreferences: SharedPreferences =
+            applicationContext.getSharedPreferences("shared", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("device_address", address)
+        editor.apply()
     }
 
     private fun stopWorkoutService() {

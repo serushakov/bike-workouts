@@ -1,6 +1,5 @@
 package io.ushakov.bike_workouts.ui.views
 
-import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.le.ScanResult
 import android.os.ParcelUuid
 import android.util.Log
@@ -20,17 +19,19 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.LiveData
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.polidea.rxandroidble2.LogConstants
-import com.polidea.rxandroidble2.LogOptions
 import com.polidea.rxandroidble2.RxBleClient
+import com.polidea.rxandroidble2.Timeout
 import com.polidea.rxandroidble2.scan.ScanFilter
 import com.polidea.rxandroidble2.scan.ScanSettings
 import io.ushakov.bike_workouts.BluetoothService
+import io.ushakov.bike_workouts.HeartRateDeviceManager
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.ui.components.BleListItem
+import io.ushakov.bike_workouts.ui.components.ButtonStatus
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
 import io.ushakov.myapplication.ui.theme.Typography
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 interface BluetoothSettingsViewModelInterface {
@@ -43,17 +44,17 @@ interface BluetoothSettingsViewModelInterface {
 @Composable
 fun BluetoothSettings(
     navController: NavController,
+    onDevicePair: (address: String) -> Unit,
 ) {
     Scaffold(
         topBar = { BluetoothSettingsAppBar(navController) }
     ) {
-        View()
+        View(onDevicePair)
     }
 }
 
 @Composable
-internal fun View() {
-
+internal fun View(onDevicePair: (deviceAddress: String) -> Unit) {
     ConstraintLayout(
         modifier = Modifier.padding(16.dp)
     ) {
@@ -72,12 +73,12 @@ internal fun View() {
             bottom.linkTo(parent.bottom)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
-        })
+        }, onDevicePair)
     }
 }
 
 @Composable
-fun LiveDataDeviceList(modifier: Modifier) {
+fun LiveDataDeviceList(modifier: Modifier, onDevicePair: (deviceAddress: String) -> Unit) {
     val context = LocalContext.current
     val rxBleClient = remember {
         derivedStateOf {
@@ -85,8 +86,7 @@ fun LiveDataDeviceList(modifier: Modifier) {
         }
     }
 
-    var deviceList by
-    remember { mutableStateOf(listOf<com.polidea.rxandroidble2.scan.ScanResult>()) }
+    var deviceList by remember { mutableStateOf(listOf<com.polidea.rxandroidble2.scan.ScanResult>()) }
 
     DisposableEffect(rxBleClient) {
         val settings = ScanSettings
@@ -122,61 +122,49 @@ fun LiveDataDeviceList(modifier: Modifier) {
     }
 
 
-    DeviceList(modifier, list = deviceList)
+    DeviceList(modifier, list = deviceList, onDevicePair)
 }
 
 @Composable
-fun DeviceList(modifier: Modifier, list: List<com.polidea.rxandroidble2.scan.ScanResult>) {
+fun DeviceList(
+    modifier: Modifier,
+    list: List<com.polidea.rxandroidble2.scan.ScanResult>,
+    onDevicePair: (address: String) -> Unit,
+) {
+    val context = LocalContext.current
+    val bleClient by remember { mutableStateOf(RxBleClient.create(context)) }
     val (deviceAddress, setDeviceAddress) = remember { mutableStateOf<String?>(null) }
-    val rxBleClient = RxBleClient.create(LocalContext.current)
-
-    val logOptions = LogOptions.Builder().setLogLevel(LogConstants.DEBUG).build()
-//    RxBleClient.updateLogOptions(logOptions)
-
-    DisposableEffect(key1 = deviceAddress) {
-        if (deviceAddress != null) {
-            val device = rxBleClient.getBleDevice(deviceAddress)
-            val disposable = device.establishConnection(false)
-                .flatMap {
-                    it.setupNotification(UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb"))
-                }
-                .flatMap {
-                    it
-                }
-                .subscribe({ data ->
-                    val (flag, value) = data
+    val (isConnecting, setIsConnecting) = remember { mutableStateOf(false) }
+    val (connectionSuccess, setConnectionSuccess) = remember { mutableStateOf(false) }
+    val (error, setError) = remember { mutableStateOf<Throwable?>(null) }
 
 
-                    Log.d("data", value.toInt().toString())
-                }) { throwable ->
-                    Log.d("error", throwable.localizedMessage)
-                }
-            onDispose {
-                disposable.dispose()
-            }
-        } else {
-            onDispose { }
+    DisposableEffect(deviceAddress) {
+        if (deviceAddress == null) return@DisposableEffect onDispose { }
+
+        HeartRateDeviceManager.getInstance().deviceAddress = deviceAddress
+
+        val disposable = HeartRateDeviceManager.getInstance().subscribe { value ->
+            Log.d("HR", value.toString())
         }
+
+        onDispose { disposable.dispose() }
     }
 
     LazyColumn(modifier = modifier) {
         items(items = list) { item ->
-            BleListItem(deviceName = item.bleDevice.name ?: "No name") {
+            BleListItem(
+                deviceName = item.bleDevice.name ?: "No name",
+                when {
+                    item.bleDevice.macAddress == deviceAddress -> ButtonStatus.PAIRING
+                    isConnecting -> ButtonStatus.DISABLED
+                    bleClient.bondedDevices.any { it.macAddress === item.bleDevice.macAddress } || connectionSuccess && item.bleDevice.macAddress == deviceAddress -> ButtonStatus.PAIRED
+                    else -> ButtonStatus.DEFAULT
+                }) {
                 setDeviceAddress(item.bleDevice.macAddress)
             }
         }
     }
-}
-
-fun ByteArray.toHex() = joinToString("") { String.format("%02X", (it.toInt() and 0xff)) }
-
-
-fun ByteArray.littleEndianConversion(): Int {
-    var result = 0
-    for (i in this.indices) {
-        result = result or (this[i].toInt() shl 8 * i)
-    }
-    return result
 }
 
 @Composable
@@ -197,6 +185,6 @@ fun BluetoothSettingsAppBar(navController: NavController) {
 @Composable
 internal fun BluetoothSettingsPreview() {
     BikeWorkoutsTheme {
-        BluetoothSettings(rememberNavController())
+        BluetoothSettings(rememberNavController()) {}
     }
 }
