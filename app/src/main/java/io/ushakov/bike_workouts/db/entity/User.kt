@@ -36,7 +36,7 @@ data class User (
 class UserWorkout {
 
     @Embedded
-    var workout: Workout? = null
+    var user: User? = null
 
     @Relation(
         parentColumn = "id",

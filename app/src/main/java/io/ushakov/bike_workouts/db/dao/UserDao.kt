@@ -1,5 +1,6 @@
 package io.ushakov.bike_workouts.db.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import io.ushakov.bike_workouts.db.entity.User
 import io.ushakov.bike_workouts.db.entity.UserWorkout
@@ -9,17 +10,17 @@ import kotlinx.coroutines.flow.Flow
 interface UserDao {
 
     @Query("SELECT * FROM USER")
-    fun getAll(): Flow<List<User>>
+    fun getAll(): LiveData<List<User>>
 
     @Query("SELECT * FROM USER where USER.firstName = :firstName AND USER.lastName = :lastName")
-    fun getUserByFirstNameAndLastName(firstName: String, lastName: String): User
+    suspend fun getUserByFirstNameAndLastName(firstName: String, lastName: String): User
 
     @Query("SELECT * FROM USER WHERE USER.id = :userId")
-    fun getUserWorkout(userId: Long): Flow<List<UserWorkout>>
+    suspend fun getUserWorkout(userId: Long): UserWorkout
 
     @Query("DELETE FROM USER")
     suspend fun deleteAll()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(user: User): Long
+    suspend fun insert(user: User): Long
 }
