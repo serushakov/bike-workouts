@@ -77,7 +77,12 @@ class MainActivity : ComponentActivity() {
         }
 
         val (pairingDeviceAddress, setPairingDeviceAddress) = remember {
-            mutableStateOf<String?>(null)
+            val sharedPreferences: SharedPreferences =
+                applicationContext.getSharedPreferences("shared", MODE_PRIVATE)
+
+            val savedDeviceAddress = sharedPreferences.getString("device_address", null)
+
+            mutableStateOf(savedDeviceAddress)
         }
 
         val (isPairing, setIsPairing) = remember {
@@ -117,7 +122,7 @@ class MainActivity : ComponentActivity() {
 
         NavHost(navController = navController, startDestination = "main") {
             composable("main") {
-                Main(navController, workoutList) {
+                Main(navController) {
                     if (ServiceStatus.IS_WORKOUT_SERVICE_RUNNING) {
                         stopWorkoutService()
                     } else {
