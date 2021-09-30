@@ -4,8 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import io.ushakov.bike_workouts.db.entity.UserWorkout
 import io.ushakov.bike_workouts.db.entity.Workout
+import io.ushakov.bike_workouts.db.entity.WorkoutSummary
 
 @Dao
 interface WorkoutDao {
@@ -26,4 +26,10 @@ interface WorkoutDao {
     //@Insert(onConflict = OnConflictStrategy.REPLACE)
     @Insert
     suspend fun insert(workout: Workout): Long
+
+    //Used by main activity to show list of workout displaying summary of each workout
+    @Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId")
+    suspend fun getWorkoutsByUserId(userId: Long): List<WorkoutSummary>
+
+
 }

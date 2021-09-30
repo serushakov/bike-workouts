@@ -49,7 +49,8 @@ abstract class WorkoutDatabase: RoomDatabase() {
                     val heartRateDao = database.heartRateDao()
                     val summaryDao = database.summaryDao()
 
-                    // TODO Clear other Dao here
+                    // This run only once if DB has not be initialized before
+                    // TODO Clear after reinstalling App
                    /* userDao.deleteAll()
                     locationDao.deleteAll()
                     workoutDao.deleteAll()
@@ -57,7 +58,7 @@ abstract class WorkoutDatabase: RoomDatabase() {
                     summaryDao.deleteAll()*/
 
 
-                    // TODO remember to remove
+                    // TODO populate new DB after reinstalling App
                     //Adding initial dummy data
                     // Users
                     val userId: Long = userDao.insert(User("ABC", "XYZ"))
@@ -68,15 +69,15 @@ abstract class WorkoutDatabase: RoomDatabase() {
                     val workoutId_01: Long = workoutDao.insert(Workout(userId,"Workout Title_01", "Workout Type_01", Date(), null ))
 
 
-                    locationDao.insert(Location(workoutId_01, Random.nextDouble(60.000000, 61.000000), Random.nextDouble(23.500000, 24.500000), 34.45F, 45.6F))
-                    locationDao.insert(Location(workoutId_01, 123.123, 123.123, 34.45F, 45.6F))
-                    locationDao.insert(Location(workoutId_01, 123.123, 123.123, 34.45F, 45.6F))
+                    var location_01 = locationDao.insert(Location(workoutId_01, Random.nextDouble(60.000000, 61.000000), Random.nextDouble(23.500000, 24.500000), 34.45F, 45.6F))
+                    var location_02 = locationDao.insert(Location(workoutId_01, 123.123, 123.123, 34.45F, 45.6F))
+                    var location_03 = locationDao.insert(Location(workoutId_01, 123.123, 123.123, 34.45F, 45.6F))
 
-                    heartRateDao.insert(HeartRate(workoutId_01, 50))
-                    heartRateDao.insert(HeartRate(workoutId_01, 50))
-                    heartRateDao.insert(HeartRate(workoutId_01, 50))
-                    heartRateDao.insert(HeartRate(workoutId_01, 50))
-                    heartRateDao.insert(HeartRate(workoutId_01, 50))
+                    var heart_rate_01 = heartRateDao.insert(HeartRate(workoutId_01, 50))
+                    var heart_rate_02 = heartRateDao.insert(HeartRate(workoutId_01, 50))
+                    var heart_rate_03 = heartRateDao.insert(HeartRate(workoutId_01, 50))
+                    var heart_rate_04 = heartRateDao.insert(HeartRate(workoutId_01, 50))
+                    var heart_rate_05 = heartRateDao.insert(HeartRate(workoutId_01, 50))
 
                     summaryDao.insert(Summary(workoutId_01, 1.5, 400))
 
@@ -84,15 +85,15 @@ abstract class WorkoutDatabase: RoomDatabase() {
                     // Workout-02
                     val workoutId_02: Long = workoutDao.insert(Workout(userId,"Workout Title_02", "Workout Type_02", Date(), null ))
 
-                    locationDao.insert(Location(workoutId_02, 123.123, 123.123, 34.45F, 45.6F))
-                    locationDao.insert(Location(workoutId_02, 123.123, 123.123, 34.45F, 45.6F))
-                    locationDao.insert(Location(workoutId_02, 123.123, 123.123, 34.45F, 45.6F))
+                    location_01 = locationDao.insert(Location(workoutId_02, 123.123, 123.123, 34.45F, 45.6F))
+                    location_02 = locationDao.insert(Location(workoutId_02, 123.123, 123.123, 34.45F, 45.6F))
+                    location_03 = locationDao.insert(Location(workoutId_02, 123.123, 123.123, 34.45F, 45.6F))
 
-                    heartRateDao.insert(HeartRate(workoutId_02, 50))
-                    heartRateDao.insert(HeartRate(workoutId_02, 50))
-                    heartRateDao.insert(HeartRate(workoutId_02, 50))
-                    heartRateDao.insert(HeartRate(workoutId_02, 50))
-                    heartRateDao.insert(HeartRate(workoutId_02, 50))
+                    heart_rate_01 = heartRateDao.insert(HeartRate(workoutId_02, 50))
+                    heart_rate_02 = heartRateDao.insert(HeartRate(workoutId_02, 50))
+                    heart_rate_03 = heartRateDao.insert(HeartRate(workoutId_02, 50))
+                    heart_rate_04 = heartRateDao.insert(HeartRate(workoutId_02, 50))
+                    heart_rate_05 = heartRateDao.insert(HeartRate(workoutId_02, 50))
 
                     summaryDao.insert(Summary(workoutId_02, 1.5, 400))
 
@@ -100,15 +101,15 @@ abstract class WorkoutDatabase: RoomDatabase() {
                     val workoutId_03: Long = workoutDao.insert(Workout(userId,"Workout Title_03", "Workout Type_03", Date(), null ))
 
 
-                    locationDao.insert(Location(workoutId_03, 123.123, 123.123, 34.45F, 45.6F))
-                    locationDao.insert(Location(workoutId_03, 123.123, 123.123, 34.45F, 45.6F))
-                    locationDao.insert(Location(workoutId_03, 123.123, 123.123, 34.45F, 45.6F))
+                    location_01 = locationDao.insert(Location(workoutId_03, 123.123, 123.123, 34.45F, 45.6F))
+                    location_02 = locationDao.insert(Location(workoutId_03, 123.123, 123.123, 34.45F, 45.6F))
+                    location_03 = locationDao.insert(Location(workoutId_03, 123.123, 123.123, 34.45F, 45.6F))
 
-                    heartRateDao.insert(HeartRate(workoutId_03, 50))
-                    heartRateDao.insert(HeartRate(workoutId_03, 50))
-                    heartRateDao.insert(HeartRate(workoutId_03, 50))
-                    heartRateDao.insert(HeartRate(workoutId_03, 50))
-                    heartRateDao.insert(HeartRate(workoutId_03, 50))
+                    heart_rate_01 = heartRateDao.insert(HeartRate(workoutId_03, 50))
+                    heart_rate_02 = heartRateDao.insert(HeartRate(workoutId_03, 50))
+                    heart_rate_03 = heartRateDao.insert(HeartRate(workoutId_03, 50))
+                    heart_rate_04 = heartRateDao.insert(HeartRate(workoutId_03, 50))
+                    heart_rate_05 = heartRateDao.insert(HeartRate(workoutId_03, 50))
 
                     summaryDao.insert(Summary(workoutId_03, 1.5, 400))
 
@@ -117,15 +118,15 @@ abstract class WorkoutDatabase: RoomDatabase() {
                     val workoutId_04: Long = workoutDao.insert(Workout(userId,"Workout Title_04", "Workout Type_04", Date(), null ))
 
 
-                    locationDao.insert(Location(workoutId_04, 123.123, 123.123, 34.45F, 45.6F))
-                    locationDao.insert(Location(workoutId_04, 123.123, 123.123, 34.45F, 45.6F))
-                    locationDao.insert(Location(workoutId_04, 123.123, 123.123, 34.45F, 45.6F))
+                    location_01 = locationDao.insert(Location(workoutId_04, 123.123, 123.123, 34.45F, 45.6F))
+                    location_02 = locationDao.insert(Location(workoutId_04, 123.123, 123.123, 34.45F, 45.6F))
+                    location_03 = locationDao.insert(Location(workoutId_04, 123.123, 123.123, 34.45F, 45.6F))
 
-                    heartRateDao.insert(HeartRate(workoutId_04, 50))
-                    heartRateDao.insert(HeartRate(workoutId_04, 50))
-                    heartRateDao.insert(HeartRate(workoutId_04, 50))
-                    heartRateDao.insert(HeartRate(workoutId_04, 50))
-                    heartRateDao.insert(HeartRate(workoutId_04, 50))
+                    heart_rate_01 = heartRateDao.insert(HeartRate(workoutId_04, 50))
+                    heart_rate_02 = heartRateDao.insert(HeartRate(workoutId_04, 50))
+                    heart_rate_03 = heartRateDao.insert(HeartRate(workoutId_04, 50))
+                    heart_rate_04 = heartRateDao.insert(HeartRate(workoutId_04, 50))
+                    heart_rate_05 = heartRateDao.insert(HeartRate(workoutId_04, 50))
 
                     summaryDao.insert(Summary(workoutId_04, 1.5, 400))
 
