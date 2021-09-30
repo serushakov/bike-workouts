@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">bike-workouts</string>
+    <string name="start_workout_label">Start workout</string>
+    <string name="account_button_label">Open account modal</string>
+    <string name="settings_button_label">Settings</string>
+    <string name="bluetooth_setup_title">Bluetooth Setup</string>
+    <string name="navigation_back">Back</string>
+    <string name="bluetooth_device_search_list_title">Discovered devices</string>
+    <string name="device_list_item_button_label">Pair</string>
 </resources>
