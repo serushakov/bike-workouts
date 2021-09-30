@@ -67,4 +67,15 @@ dependencies {
     // Room components
     implementation "androidx.room:room-ktx:2.3.0"
     kapt "androidx.room:room-compiler:2.3.0"
+    // Runtime Livedata (To use observable live data as state e.g, someLiveData.observeAsState(listOf()) Might need later )
+    //implementation "androidx.compose.runtime:runtime-livedata:1.0.2"
+
+    // All Material Icon DO NOT USE
+    /*
+        NOTE BY MAVEN REPOSITORY
+        "This module contains all Material icons. It is a very large dependency and should not be included directly."
+        See Bicycle.kt file to know how to import only required Material icons
+    */
+    //implementation "androidx.compose.material:material-icons-extended:1.0.2"
+
 }

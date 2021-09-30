@@ -1,5 +1,6 @@
 package io.ushakov.bike_workouts.ui.views
 
+import android.util.Log
 import io.ushakov.bike_workouts.R
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,12 +17,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import io.ushakov.bike_workouts.db.entity.WorkoutSummary
+import io.ushakov.bike_workouts.ui.components.WorkoutList
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun Main(navController: NavController, onServiceStartButtonClick: () -> Unit) {
+fun Main(navController: NavController, workoutList: List<WorkoutSummary>, onServiceStartButtonClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxSize()
@@ -49,6 +52,12 @@ fun Main(navController: NavController, onServiceStartButtonClick: () -> Unit) {
             Button(onClick = onServiceStartButtonClick) {
                 Text("Start service")
             }
+            WorkoutList(
+                workoutSummaryList = workoutList,
+                onSelected = {
+                        workoutSummary -> Log.d("DBG", "Workout Id: ${workoutSummary.workout!!.id}")
+                }
+            )
         }
     }
 }
@@ -90,6 +99,6 @@ fun SettingsButton(navController: NavController) {
 @Composable
 internal fun MainPreview() {
     BikeWorkoutsTheme {
-        Main(rememberNavController()) {}
+        Main(rememberNavController(), emptyList()) {}
     }
 }
