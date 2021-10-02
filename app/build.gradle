@@ -67,6 +67,8 @@ dependencies {
     // Room components
     implementation "androidx.room:room-ktx:2.3.0"
     kapt "androidx.room:room-compiler:2.3.0"
+    kapt "org.xerial:sqlite-jdbc:3.34.0"
+
     // Runtime Livedata (To use observable live data as state e.g, someLiveData.observeAsState(listOf()) Might need later )
     //implementation "androidx.compose.runtime:runtime-livedata:1.0.2"
 

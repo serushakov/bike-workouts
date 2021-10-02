@@ -125,7 +125,7 @@ class MainActivity : ComponentActivity() {
 
         NavHost(navController = navController, startDestination = "main") {
             composable("main") {
-                Main(navController) {
+                Main(navController, workoutList) {
                     if (ServiceStatus.IS_WORKOUT_SERVICE_RUNNING) {
                         stopWorkoutService()
                     } else {
@@ -143,7 +143,9 @@ class MainActivity : ComponentActivity() {
                         setIsPairing(true)
                         setPairingDeviceAddress(address)
                     }
-                )
+                ) {
+
+                }
             }
         }
     }
