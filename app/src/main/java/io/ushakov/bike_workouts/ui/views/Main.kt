@@ -5,7 +5,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -34,60 +33,98 @@ import com.google.android.libraries.maps.model.*
 import com.google.maps.android.ktx.awaitMap
 import io.ushakov.bike_workouts.MainActivity
 import io.ushakov.bike_workouts.R
+import io.ushakov.bike_workouts.WorkoutApplication
+import io.ushakov.bike_workouts.db.entity.WorkoutSummary
 import io.ushakov.bike_workouts.ui.components.SectionTitle
 import io.ushakov.bike_workouts.ui.components.WorkoutColumnItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 
 @Composable
-fun Main(navController: NavController) {
+fun Main(navController: NavController, userId: Long) {
     Scaffold(
         topBar = { MainAppBar(navController) }
     ) {
-        MainMapView()
+        Box(Modifier.fillMaxWidth()) {
+            MapView()
+
+            Column(Modifier
+                .height(400.dp)
+                .fillMaxWidth()
+                .background(brush = Brush.verticalGradient(colors = listOf(Color.White,
+                    Color.Transparent), startY = 250f))
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 16.dp)
+            ) {
+                LastWorkoutItem(navController = navController, userId = userId)
+            }
+
+            Column(
+                Modifier
+                    .height(400.dp)
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(brush = Brush.verticalGradient(colors = listOf(Color.Transparent,
+                        Color.White)))
+                    .padding(vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.weight(1f))
+                ExtendedFloatingActionButton(
+                    text = {
+                        Text(text = "START")
+                    },
+                    onClick = {}
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun MainMapView() {
-
-
-    Box {
-        MapView()
-
-        Column(Modifier
-            .height(400.dp)
-            .fillMaxWidth()
-            .background(brush = Brush.verticalGradient(colors = listOf(Color.White,
-                Color.Transparent), startY = 250f))
-            .align(Alignment.TopCenter)
-            .padding(horizontal = 16.dp)
-        ) {
-            SectionTitle(text = "Last workout")
-            WorkoutColumnItem(date = Date(), distance = 25.0, kcal = 400) {
-
+fun MainAppBar(navController: NavController) {
+    TopAppBar(
+        navigationIcon = {
+            IconButton(onClick = { }) {
+                Icon(Icons.Default.AccountCircle, "Account")
             }
-        }
+        },
+        title = {},
+        actions = {
+            IconButton(onClick = { navController.navigate("workout_history") }) {
+                Icon(Icons.Default.History, "Workout history")
+            }
+            IconButton(onClick = { navController.navigate("bluetooth_settings") }) {
+                Icon(Icons.Default.Bluetooth, "Bluetooth")
+            }
+        },
+        backgroundColor = Color.White,
+        elevation = 0.dp
+    )
+}
 
-        Column(
-            Modifier
-                .height(400.dp)
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(brush = Brush.verticalGradient(colors = listOf(Color.Transparent,
-                    Color.White)))
-                .padding(vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(Modifier.weight(1f))
-            ExtendedFloatingActionButton(
-                text = {
-                    Text(text = "START")
-                },
-                onClick = {}
-            )
+@Composable
+fun LastWorkoutItem(navController: NavController, userId: Long) {
+    val application = LocalContext.current.applicationContext as WorkoutApplication
+
+    var lastWorkout by remember { mutableStateOf<WorkoutSummary?>(null) }
+
+    LaunchedEffect(userId) {
+        lastWorkout = withContext(Dispatchers.IO) {
+            application.workoutRepository.getLastWorkout(userId)
         }
+    }
+
+    val workout = lastWorkout?.workout
+    val summary = lastWorkout?.summary
+    if(workout == null ||  summary == null) return
+
+    SectionTitle(text = "Last workout")
+    WorkoutColumnItem(date = workout.startAt, distance = summary.distance, kcal = summary.kiloCalories) {
+        // TODO: Navigate to workout summary screen
     }
 }
 
@@ -145,7 +182,6 @@ fun MapView() {
                 }
             }
         }
-
 
         onDispose {
             fusedLocationProviderClient.removeLocationUpdates(locationCallback)
@@ -225,24 +261,3 @@ fun rememberMapLifecycleObserver(mapView: MapView): LifecycleEventObserver =
         }
     }
 
-@Composable
-fun MainAppBar(navController: NavController) {
-    TopAppBar(
-        navigationIcon = {
-            IconButton(onClick = { }) {
-                Icon(Icons.Default.AccountCircle, "Account")
-            }
-        },
-        title = {},
-        actions = {
-            IconButton(onClick = { navController.navigate("workout_history") }) {
-                Icon(Icons.Default.History, "Workout history")
-            }
-            IconButton(onClick = { navController.navigate("bluetooth_settings") }) {
-                Icon(Icons.Default.Bluetooth, "Bluetooth")
-            }
-        },
-        backgroundColor = Color.White,
-        elevation = 0.dp
-    )
-}

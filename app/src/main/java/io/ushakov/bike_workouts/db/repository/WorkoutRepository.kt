@@ -16,7 +16,11 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
         return@withContext workoutDao.insert(workout)
     }
 
-    suspend fun getWorkoutsByUserId(userId: Long) = withContext(Dispatchers.IO)  {
+    suspend fun getWorkoutsByUserId(userId: Long) = withContext(Dispatchers.IO) {
         return@withContext workoutDao.getWorkoutsByUserId(userId)
+    }
+
+    suspend fun getLastWorkout(userId: Long) = withContext(Dispatchers.IO) {
+        return@withContext workoutDao.getLastWorkoutByUserId(userId)
     }
 }

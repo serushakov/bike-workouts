@@ -110,7 +110,7 @@ class MainActivity : ComponentActivity() {
 
         NavHost(navController = navController, startDestination = "main") {
             composable("main") {
-                Main(navController)
+                Main(navController, 1)
             }
             composable("workout_history") {
                 WorkoutHistory(navController, 1)
