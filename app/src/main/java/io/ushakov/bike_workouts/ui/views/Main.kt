@@ -1,22 +1,19 @@
 package io.ushakov.bike_workouts.ui.views
 
+
 import android.Manifest
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
+import android.os.Looper
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.History
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -29,28 +26,18 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
+import com.google.android.libraries.maps.CameraUpdateFactory
+import com.google.android.libraries.maps.GoogleMap
 import com.google.android.libraries.maps.MapView
+import com.google.android.libraries.maps.model.*
 import com.google.maps.android.ktx.awaitMap
+import io.ushakov.bike_workouts.MainActivity
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.ui.components.SectionTitle
 import io.ushakov.bike_workouts.ui.components.WorkoutColumnItem
 import kotlinx.coroutines.launch
 import java.util.*
-import com.google.android.libraries.maps.CameraUpdateFactory
-
-import com.google.android.libraries.maps.model.LatLng
-
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.Task
-import io.ushakov.bike_workouts.MainActivity
-import com.google.android.libraries.maps.model.MarkerOptions
-
-
-import com.google.android.libraries.maps.model.BitmapDescriptorFactory
-
-import com.google.android.libraries.maps.model.BitmapDescriptor
-import io.ushakov.myapplication.ui.theme.Typography
 
 
 @Composable
@@ -64,48 +51,10 @@ fun Main(navController: NavController) {
 
 @Composable
 fun MainMapView() {
-    val scope = rememberCoroutineScope()
-    val mapView = rememberMapViewWithLifecycle()
-    val context = LocalContext.current
-    val fusedLocationProviderClient =
-        LocationServices.getFusedLocationProviderClient(LocalContext.current);
-
-    if (ActivityCompat.checkSelfPermission(context,
-            Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-    ) {
-        return
-    }
 
 
     Box {
-        AndroidView(
-            modifier = Modifier.padding(top = 40.dp),
-            factory = { mapView }
-        ) { mapView ->
-            scope.launch {
-                val map = mapView.awaitMap()
-                val locationResult = fusedLocationProviderClient.lastLocation
-
-                locationResult.addOnCompleteListener(
-                    context as MainActivity
-                ) { task ->
-                    if (task.isSuccessful) {
-                        // Set the map's camera position to the current location of the device.
-                        if (task.result != null) {
-                            val location = LatLng(task.result.latitude, task.result.longitude)
-                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                location,
-                                11f
-                            ))
-                            val marker = UserMarker(location)
-                            map.addMarker(marker)
-                        }
-                    }
-                }
-            }
-        }
+        MapView()
 
         Column(Modifier
             .height(400.dp)
@@ -120,7 +69,6 @@ fun MainMapView() {
 
             }
         }
-
 
         Column(
             Modifier
@@ -143,13 +91,98 @@ fun MainMapView() {
     }
 }
 
-fun UserMarker(position: LatLng): MarkerOptions? {
+@Composable
+fun MapView() {
+    val scope = rememberCoroutineScope()
+    val mapView = rememberMapViewWithLifecycle()
+    val context = LocalContext.current
+    val fusedLocationProviderClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    var map by remember { mutableStateOf<GoogleMap?>(null) }
+    var userLocation by remember { mutableStateOf<LatLng?>(null) }
+    var userMarker by remember { mutableStateOf<Marker?>(null) }
+
+    if (ActivityCompat.checkSelfPermission(context,
+            Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+    ) {
+        return
+    }
+
+    DisposableEffect(fusedLocationProviderClient) {
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult?) {
+                val last = result?.locations?.last()
+
+                userLocation =
+                    if (last != null) LatLng(last.latitude, last.longitude) else userLocation
+            }
+        }
+
+        val locationRequest = LocationRequest.create();
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationRequest.interval = 10000
+
+        // RequestLocationUpdates
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest,
+            locationCallback,
+            Looper.getMainLooper())
+
+        val locationResult = fusedLocationProviderClient.lastLocation
+
+        // Set map to last known location
+        locationResult.addOnCompleteListener(
+            context as MainActivity
+        ) { task ->
+            if (task.isSuccessful) {
+                if (task.result != null) {
+                    val location = LatLng(task.result.latitude, task.result.longitude)
+
+                    userLocation = location
+                }
+            }
+        }
+
+
+        onDispose {
+            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        }
+    }
+
+    LaunchedEffect(map, userLocation) {
+        if (map == null || userLocation == null) return@LaunchedEffect
+
+        if (userMarker != null) {
+            userMarker!!.position = userLocation
+        } else {
+            userMarker = map!!.addMarker(createUserMarker(userLocation!!))
+            map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                userLocation,
+                11f
+            ))
+        }
+
+    }
+
+    AndroidView(
+        modifier = Modifier.padding(top = 40.dp),
+        factory = { mapView }
+    ) { mapView ->
+        scope.launch {
+            map = mapView.awaitMap()
+        }
+    }
+}
+
+fun createUserMarker(position: LatLng): MarkerOptions? {
     val blueDot =
         BitmapDescriptorFactory.fromResource(R.drawable.my_location)
 
     return MarkerOptions()
         .position(position)
-        .title("Your location")
         .icon(blueDot)
         .anchor(0.5f, 0.5f)
 }
