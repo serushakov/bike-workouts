@@ -100,7 +100,7 @@ class MainActivity : ComponentActivity() {
                         setPairedDevice(it)
                         saveDeviceAddress(pairingDeviceAddress)
                     }) {
-                        Log.d("Connection error", it?.localizedMessage.toString())
+                        Log.d("Connection error", it.localizedMessage?.toString() ?: "")
                     }
 
             onDispose {
@@ -109,9 +109,12 @@ class MainActivity : ComponentActivity() {
         }
 
         DisposableEffect(pairedDevice) {
-            if(pairedDevice == null) return@DisposableEffect onDispose {  }
+            if (pairedDevice == null) {
+                HeartRateDeviceManager.getInstance().forgetDevice()
 
-            Log.d("debug", "test")
+                return@DisposableEffect onDispose { }
+            }
+
             val disposable = HeartRateDeviceManager.getInstance().subscribe {
                 Log.d("HEARTRATE", it.toString())
             }

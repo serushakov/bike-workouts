@@ -16,7 +16,7 @@ class HeartRateDeviceManager(context: Context) {
     private var connection: RxBleConnection? = null
     private val callbacks: MutableSet<(value: Int) -> Unit> = mutableSetOf()
     private var notificationsDisposable: Disposable? = null
-
+    private var connectionDisposable: Disposable? = null
 
     class DeviceNotInitializedError : Throwable() {
         override fun getLocalizedMessage(): String {
@@ -88,6 +88,11 @@ class HeartRateDeviceManager(context: Context) {
     fun getDevice() = device
 
     fun hasDevice() = device != null
+
+    fun forgetDevice() {
+        notificationsDisposable?.dispose()
+        device = null
+    }
 
     fun subscribe(callback: (value: Int) -> Unit): Disposable {
         if (!hasDevice()) throw DeviceNotInitializedError()
