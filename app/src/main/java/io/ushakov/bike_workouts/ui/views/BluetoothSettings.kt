@@ -27,6 +27,7 @@ import com.polidea.rxandroidble2.scan.ScanSettings
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.ui.components.BleListItem
 import io.ushakov.bike_workouts.ui.components.ButtonStatus
+import io.ushakov.bike_workouts.ui.components.SectionTitle
 import io.ushakov.bike_workouts.ui.theme.Blue800
 import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.myapplication.ui.theme.Typography
@@ -76,17 +77,6 @@ internal fun View(
             )
         }
     }
-}
-
-@Composable
-fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text.uppercase(),
-        modifier = modifier,
-        style = Typography.overline,
-        color = Blue800
-    )
-    Spacer(Modifier.height(8.dp))
 }
 
 @ExperimentalAnimationApi

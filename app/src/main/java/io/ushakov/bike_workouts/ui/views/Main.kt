@@ -1,11 +1,12 @@
 package io.ushakov.bike_workouts.ui.views
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -24,13 +25,32 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.maps.MapView
 import com.google.maps.android.ktx.awaitMap
 import io.ushakov.bike_workouts.R
+import io.ushakov.bike_workouts.ui.components.SectionTitle
+import io.ushakov.bike_workouts.ui.components.WorkoutColumnItem
 import kotlinx.coroutines.launch
+import java.util.*
+import com.google.android.libraries.maps.CameraUpdateFactory
+
+import com.google.android.libraries.maps.model.LatLng
+
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
+import io.ushakov.bike_workouts.MainActivity
+import com.google.android.libraries.maps.model.MarkerOptions
+
+
+import com.google.android.libraries.maps.model.BitmapDescriptorFactory
+
+import com.google.android.libraries.maps.model.BitmapDescriptor
+import io.ushakov.myapplication.ui.theme.Typography
 
 
 @Composable
@@ -46,33 +66,92 @@ fun Main(navController: NavController) {
 fun MainMapView() {
     val scope = rememberCoroutineScope()
     val mapView = rememberMapViewWithLifecycle()
+    val context = LocalContext.current
+    val fusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(LocalContext.current);
+
+    if (ActivityCompat.checkSelfPermission(context,
+            Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+    ) {
+        return
+    }
+
 
     Box {
         AndroidView(
-            { mapView }
+            modifier = Modifier.padding(top = 40.dp),
+            factory = { mapView }
         ) { mapView ->
             scope.launch {
                 val map = mapView.awaitMap()
+                val locationResult = fusedLocationProviderClient.lastLocation
+
+                locationResult.addOnCompleteListener(
+                    context as MainActivity
+                ) { task ->
+                    if (task.isSuccessful) {
+                        // Set the map's camera position to the current location of the device.
+                        if (task.result != null) {
+                            val location = LatLng(task.result.latitude, task.result.longitude)
+                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                location,
+                                11f
+                            ))
+                            val marker = UserMarker(location)
+                            map.addMarker(marker)
+                        }
+                    }
+                }
             }
         }
-        Box(Modifier
-            .height(500.dp)
+
+        Column(Modifier
+            .height(400.dp)
             .fillMaxWidth()
             .background(brush = Brush.verticalGradient(colors = listOf(Color.White,
-                Color.Transparent), startY = 200f))
+                Color.Transparent), startY = 250f))
             .align(Alignment.TopCenter)
-        )
+            .padding(horizontal = 16.dp)
+        ) {
+            SectionTitle(text = "Last workout")
+            WorkoutColumnItem(date = Date(), distance = 25.0, kcal = 400) {
 
-        ExtendedFloatingActionButton(
-            modifier = Modifier
+            }
+        }
+
+
+        Column(
+            Modifier
+                .height(400.dp)
                 .align(Alignment.BottomCenter)
-                .padding(all = 16.dp),
-            text = {
-                Text(text = "START")
-            },
-            onClick = {}
-        )
+                .fillMaxWidth()
+                .background(brush = Brush.verticalGradient(colors = listOf(Color.Transparent,
+                    Color.White)))
+                .padding(vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.weight(1f))
+            ExtendedFloatingActionButton(
+                text = {
+                    Text(text = "START")
+                },
+                onClick = {}
+            )
+        }
     }
+}
+
+fun UserMarker(position: LatLng): MarkerOptions? {
+    val blueDot =
+        BitmapDescriptorFactory.fromResource(R.drawable.my_location)
+
+    return MarkerOptions()
+        .position(position)
+        .title("Your location")
+        .icon(blueDot)
+        .anchor(0.5f, 0.5f)
 }
 
 @Composable
