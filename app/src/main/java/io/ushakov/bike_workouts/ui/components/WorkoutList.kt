@@ -16,7 +16,7 @@ fun WorkoutList(
     workoutSummaryList: List<WorkoutSummary>,
     onSelected: (WorkoutSummary) -> Unit,
 ) {
-    LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp)) {
+    LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)) {
         itemsIndexed(workoutSummaryList.filter { it.summary != null && it.workout != null }) { index, workoutSummary ->
             WorkoutColumnItem(
                 workoutSummary.workout!!.startAt,
