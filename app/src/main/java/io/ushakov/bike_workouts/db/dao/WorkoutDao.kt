@@ -31,5 +31,7 @@ interface WorkoutDao {
     @Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId")
     suspend fun getWorkoutsByUserId(userId: Long): List<WorkoutSummary>
 
-
+    //Used by main activity to show list of workout displaying summary of each workout
+    @Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId ORDER BY id DESC LIMIT 1")
+    suspend fun getLastWorkoutByUserId(userId: Long): WorkoutSummary
 }

@@ -11,16 +11,10 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.*
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.activity.compose.setContent
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import io.ushakov.bike_workouts.db.entity.WorkoutSummary
-import io.ushakov.bike_workouts.view_models.WorkoutListViewModel
-import io.ushakov.bike_workouts.view_models.WorkoutListViewModelFactory
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.ushakov.bike_workouts.ui.views.BluetoothSettings
 import io.ushakov.bike_workouts.ui.views.Main
+import io.ushakov.bike_workouts.ui.views.WorkoutHistory
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
 
 /*
@@ -36,8 +31,6 @@ TODO Setup activity calls DB and gets user and it then pass UserId here, which s
 */
 class MainActivity : ComponentActivity() {
 
-    private lateinit var workoutListViewModel: WorkoutListViewModel
-    private lateinit var workoutList: List<WorkoutSummary>
 
     @ExperimentalAnimationApi
     @ExperimentalMaterialApi
@@ -46,15 +39,7 @@ class MainActivity : ComponentActivity() {
 
         HeartRateDeviceManager.initialize(applicationContext)
 
-        workoutListViewModel = WorkoutListViewModelFactory(
-            (application as WorkoutApplication).workoutRepository
-        ).create(WorkoutListViewModel::class.java)
-        //TODO get user id from preferences
-        workoutListViewModel.getWorkoutsByUserId(1)
-
         setContent {
-            val workoutList by workoutListViewModel.workoutsByUserId
-            this.workoutList = workoutList
             BikeWorkoutsTheme {
                 View()
             }
@@ -125,13 +110,10 @@ class MainActivity : ComponentActivity() {
 
         NavHost(navController = navController, startDestination = "main") {
             composable("main") {
-                Main(navController) {
-                    if (ServiceStatus.IS_WORKOUT_SERVICE_RUNNING) {
-                        stopWorkoutService()
-                    } else {
-                        startWorkoutService()
-                    }
-                }
+                Main(navController, 1)
+            }
+            composable("workout_history") {
+                WorkoutHistory(navController, 1)
             }
             composable("bluetooth_settings") {
                 BluetoothSettings(
@@ -143,7 +125,9 @@ class MainActivity : ComponentActivity() {
                         setIsPairing(true)
                         setPairingDeviceAddress(address)
                     }
-                )
+                ) {
+
+                }
             }
         }
     }
