@@ -1,10 +1,13 @@
 package io.ushakov.bike_workouts.ui.views
 
 import android.os.Bundle
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.TopAppBar
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Bluetooth
@@ -13,6 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -41,13 +47,31 @@ fun MainMapView() {
     val scope = rememberCoroutineScope()
     val mapView = rememberMapViewWithLifecycle()
 
-    AndroidView(
-        { mapView }
-    ) { mapView ->
-        scope.launch {
-            val map = mapView.awaitMap()
-            map.uiSettings.isZoomControlsEnabled = true
+    Box {
+        AndroidView(
+            { mapView }
+        ) { mapView ->
+            scope.launch {
+                val map = mapView.awaitMap()
+            }
         }
+        Box(Modifier
+            .height(500.dp)
+            .fillMaxWidth()
+            .background(brush = Brush.verticalGradient(colors = listOf(Color.White,
+                Color.Transparent), startY = 200f))
+            .align(Alignment.TopCenter)
+        )
+
+        ExtendedFloatingActionButton(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(all = 16.dp),
+            text = {
+                Text(text = "START")
+            },
+            onClick = {}
+        )
     }
 }
 
