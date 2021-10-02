@@ -77,7 +77,12 @@ class MainActivity : ComponentActivity() {
         }
 
         val (pairingDeviceAddress, setPairingDeviceAddress) = remember {
-            mutableStateOf<String?>(null)
+            val sharedPreferences: SharedPreferences =
+                applicationContext.getSharedPreferences("shared", MODE_PRIVATE)
+
+            val savedDeviceAddress = sharedPreferences.getString("device_address", null)
+
+            mutableStateOf(savedDeviceAddress)
         }
 
         val (isPairing, setIsPairing) = remember {
@@ -95,7 +100,7 @@ class MainActivity : ComponentActivity() {
                         setPairedDevice(it)
                         saveDeviceAddress(pairingDeviceAddress)
                     }) {
-                        Log.d("Connection error", it?.localizedMessage.toString())
+                        Log.d("Connection error", it.localizedMessage?.toString() ?: "")
                     }
 
             onDispose {
@@ -104,9 +109,12 @@ class MainActivity : ComponentActivity() {
         }
 
         DisposableEffect(pairedDevice) {
-            if(pairedDevice == null) return@DisposableEffect onDispose {  }
+            if (pairedDevice == null) {
+                HeartRateDeviceManager.getInstance().forgetDevice()
 
-            Log.d("debug", "test")
+                return@DisposableEffect onDispose { }
+            }
+
             val disposable = HeartRateDeviceManager.getInstance().subscribe {
                 Log.d("HEARTRATE", it.toString())
             }
@@ -117,7 +125,7 @@ class MainActivity : ComponentActivity() {
 
         NavHost(navController = navController, startDestination = "main") {
             composable("main") {
-                Main(navController, workoutList) {
+                Main(navController) {
                     if (ServiceStatus.IS_WORKOUT_SERVICE_RUNNING) {
                         stopWorkoutService()
                     } else {

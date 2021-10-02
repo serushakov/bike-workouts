@@ -40,13 +40,13 @@ fun BluetoothSettings(
     isPairing: Boolean,
     pairingDeviceAddress: String?,
     pairedDevice: RxBleDevice?,
-
     onDevicePair: (deviceAddress: String) -> Unit,
+    onUnpairClick: () -> Unit
 ) {
     Scaffold(
         topBar = { BluetoothSettingsAppBar(navController) }
     ) {
-        View(onDevicePair, isPairing, pairingDeviceAddress, pairedDevice)
+        View(onDevicePair, isPairing, pairingDeviceAddress, pairedDevice, onUnpairClick)
     }
 }
 
@@ -58,6 +58,7 @@ internal fun View(
     isPairing: Boolean,
     pairingDeviceAddress: String?,
     pairedDevice: RxBleDevice?,
+    onUnpairClick: () -> Unit
 ) {
     Column(
         modifier = Modifier.padding(16.dp)
@@ -65,7 +66,7 @@ internal fun View(
 
         if (pairedDevice != null) {
             Row {
-                ConnectedDevice(device = pairedDevice)
+                ConnectedDevice(device = pairedDevice, onUnpairClick = onUnpairClick)
             }
         } else {
             DeviceList(
@@ -91,7 +92,11 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier) {
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-fun ConnectedDevice(device: RxBleDevice?, modifier: Modifier = Modifier) {
+fun ConnectedDevice(
+    device: RxBleDevice?,
+    modifier: Modifier = Modifier,
+    onUnpairClick: () -> Unit,
+) {
     val (showButton, setShowButton) = remember { mutableStateOf(false) }
 
     Column(modifier) {
@@ -123,7 +128,7 @@ fun ConnectedDevice(device: RxBleDevice?, modifier: Modifier = Modifier) {
                     AnimatedVisibility(visible = showButton,
                         enter = expandVertically(),
                         exit = shrinkVertically()) {
-                        Button(onClick = {}) {
+                        Button(onClick = onUnpairClick) {
                             Text("Unpair")
                         }
                     }
