@@ -124,22 +124,51 @@ fun LastWorkoutItem(navController: NavController, userId: Long) {
 
 @Composable
 fun MapView() {
+    var map by remember { mutableStateOf<GoogleMap?>(null) }
+    var userMarker by remember { mutableStateOf<Marker?>(null) }
+    val userLocation = rememberUserLocation()
+
+
+    LaunchedEffect(map, userLocation) {
+        if (map == null || userLocation == null) return@LaunchedEffect
+
+        if (userMarker != null) {
+            userMarker!!.position = userLocation
+        } else {
+            userMarker = map!!.addMarker(createUserMarker(userLocation))
+            map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                userLocation,
+                11f
+            ))
+        }
+    }
+
+    ComposableMap(
+        modifier = Modifier.padding(top = 40.dp),
+    ) { googleMap ->
+        map = googleMap
+    }
+}
+
+@Composable
+fun rememberUserLocation(): LatLng? {
     val context = LocalContext.current
     val fusedLocationProviderClient = remember {
         LocationServices.getFusedLocationProviderClient(context)
     }
 
-    var map by remember { mutableStateOf<GoogleMap?>(null) }
     var userLocation by remember { mutableStateOf<LatLng?>(null) }
-    var userMarker by remember { mutableStateOf<Marker?>(null) }
+
+
 
     if (ActivityCompat.checkSelfPermission(context,
             Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
     ) {
-        return
+        return userLocation
     }
+
 
     DisposableEffect(fusedLocationProviderClient) {
         val locationCallback = object : LocationCallback() {
@@ -155,7 +184,7 @@ fun MapView() {
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         locationRequest.interval = 10000
 
-        // RequestLocationUpdates
+        // Request location updates
         fusedLocationProviderClient.requestLocationUpdates(locationRequest,
             locationCallback,
             Looper.getMainLooper())
@@ -180,25 +209,7 @@ fun MapView() {
         }
     }
 
-    LaunchedEffect(map, userLocation) {
-        if (map == null || userLocation == null) return@LaunchedEffect
-
-        if (userMarker != null) {
-            userMarker!!.position = userLocation
-        } else {
-            userMarker = map!!.addMarker(createUserMarker(userLocation!!))
-            map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                userLocation,
-                11f
-            ))
-        }
-    }
-
-    ComposableMap(
-        modifier = Modifier.padding(top = 40.dp),
-    ) { googleMap ->
-        map = googleMap
-    }
+    return userLocation
 }
 
 fun createUserMarker(position: LatLng): MarkerOptions? {
