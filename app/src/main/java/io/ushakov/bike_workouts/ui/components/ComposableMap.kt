@@ -1,7 +1,6 @@
 package io.ushakov.bike_workouts.ui.components
 
 import android.os.Bundle
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
@@ -29,7 +28,6 @@ fun ComposableMap(modifier: Modifier = Modifier, onInit: (googleMap: GoogleMap) 
     ) { mapView ->
         scope.launch {
             val map = mapView.awaitMap()
-
             onInit(map)
         }
     }
