@@ -3,7 +3,6 @@ package io.ushakov.bike_workouts.ui.views
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.os.Bundle
 import android.os.Looper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,27 +17,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.google.android.gms.location.*
 import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.GoogleMap
-import com.google.android.libraries.maps.MapView
 import com.google.android.libraries.maps.model.*
-import com.google.maps.android.ktx.awaitMap
 import io.ushakov.bike_workouts.MainActivity
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.WorkoutSummary
+import io.ushakov.bike_workouts.ui.components.ComposableMap
 import io.ushakov.bike_workouts.ui.components.SectionTitle
 import io.ushakov.bike_workouts.ui.components.WorkoutColumnItem
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
@@ -120,18 +113,18 @@ fun LastWorkoutItem(navController: NavController, userId: Long) {
 
     val workout = lastWorkout?.workout
     val summary = lastWorkout?.summary
-    if(workout == null ||  summary == null) return
+    if (workout == null || summary == null) return
 
     SectionTitle(text = "Last workout")
-    WorkoutColumnItem(date = workout.startAt, distance = summary.distance, kcal = summary.kiloCalories) {
+    WorkoutColumnItem(date = workout.startAt,
+        distance = summary.distance,
+        kcal = summary.kiloCalories) {
         // TODO: Navigate to workout summary screen
     }
 }
 
 @Composable
 fun MapView() {
-    val scope = rememberCoroutineScope()
-    val mapView = rememberMapViewWithLifecycle()
     val context = LocalContext.current
     val fusedLocationProviderClient = remember {
         LocationServices.getFusedLocationProviderClient(context)
@@ -159,7 +152,7 @@ fun MapView() {
             }
         }
 
-        val locationRequest = LocationRequest.create();
+        val locationRequest = LocationRequest.create()
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         locationRequest.interval = 10000
 
@@ -200,16 +193,12 @@ fun MapView() {
                 11f
             ))
         }
-
     }
 
-    AndroidView(
+    ComposableMap(
         modifier = Modifier.padding(top = 40.dp),
-        factory = { mapView }
-    ) { mapView ->
-        scope.launch {
-            map = mapView.awaitMap()
-        }
+    ) { googleMap ->
+        map = googleMap
     }
 }
 
@@ -223,41 +212,4 @@ fun createUserMarker(position: LatLng): MarkerOptions? {
         .anchor(0.5f, 0.5f)
 }
 
-@Composable
-fun rememberMapViewWithLifecycle(): MapView {
-    val context = LocalContext.current
-    val mapView = remember {
-        MapView(context).apply {
-            id = R.id.map
-        }
-    }
-
-    // Makes MapView follow the lifecycle of this composable
-    val lifecycleObserver = rememberMapLifecycleObserver(mapView)
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(lifecycle) {
-        lifecycle.addObserver(lifecycleObserver)
-        onDispose {
-            lifecycle.removeObserver(lifecycleObserver)
-        }
-    }
-
-    return mapView
-}
-
-@Composable
-fun rememberMapLifecycleObserver(mapView: MapView): LifecycleEventObserver =
-    remember(mapView) {
-        LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_CREATE -> mapView.onCreate(Bundle())
-                Lifecycle.Event.ON_START -> mapView.onStart()
-                Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                Lifecycle.Event.ON_STOP -> mapView.onStop()
-                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
-                else -> throw IllegalStateException()
-            }
-        }
-    }
 
