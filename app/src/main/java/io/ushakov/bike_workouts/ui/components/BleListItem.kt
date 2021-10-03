@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.ushakov.bike_workouts.R
-import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
+import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 
 enum class ButtonStatus {
     DEFAULT,

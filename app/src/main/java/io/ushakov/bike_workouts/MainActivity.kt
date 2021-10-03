@@ -27,7 +27,7 @@ import io.ushakov.bike_workouts.ui.views.BluetoothSettings
 import io.ushakov.bike_workouts.ui.views.Main
 import io.ushakov.bike_workouts.ui.views.WorkoutDetails
 import io.ushakov.bike_workouts.ui.views.WorkoutHistory
-import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
+import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 
 /*
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
@@ -111,7 +111,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        NavHost(navController = navController, startDestination = "main") {
+        NavHost(navController = navController, startDestination = "main", ) {
             composable("main") {
                 Main(navController, 1)
             }

@@ -30,7 +30,7 @@ import io.ushakov.bike_workouts.ui.components.ButtonStatus
 import io.ushakov.bike_workouts.ui.components.SectionTitle
 import io.ushakov.bike_workouts.ui.components.ThemedTopAppBar
 import io.ushakov.bike_workouts.util.Constants
-import io.ushakov.myapplication.ui.theme.Typography
+import io.ushakov.bike_workouts.ui.theme.Typography
 import java.util.*
 
 @ExperimentalAnimationApi

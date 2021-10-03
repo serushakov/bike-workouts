@@ -10,7 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.ushakov.bike_workouts.ui.theme.Blue700
 import io.ushakov.bike_workouts.ui.theme.Blue800
-import io.ushakov.myapplication.ui.theme.Typography
+import io.ushakov.bike_workouts.ui.theme.Typography
 
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier) {

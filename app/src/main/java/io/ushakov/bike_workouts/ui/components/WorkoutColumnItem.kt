@@ -10,6 +10,8 @@ import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,9 +25,8 @@ import io.ushakov.bike_workouts.ui.theme.Black4
 import io.ushakov.bike_workouts.ui.theme.Blue800
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlay
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlayDark
-import io.ushakov.myapplication.ui.theme.Typography
+import io.ushakov.bike_workouts.ui.theme.Typography
 import java.text.DateFormat
-import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
@@ -102,9 +103,9 @@ fun BicycleIcon() {
     val darkTheme = isSystemInDarkTheme()
 
     Icon(
-        painter = painterResource(R.drawable.ic_baseline_directions_bike_24),
+        Icons.Default.DirectionsBike,
         contentDescription = "Bicycle image",
-        tint = if(darkTheme) MaterialTheme.colors.onSurface else Blue800,
+        tint = if (darkTheme) MaterialTheme.colors.onSurface else Blue800,
         modifier = Modifier
             .size(24.dp)
     )
