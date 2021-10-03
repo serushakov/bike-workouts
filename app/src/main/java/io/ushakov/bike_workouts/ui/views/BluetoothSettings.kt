@@ -28,7 +28,7 @@ import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.ui.components.BleListItem
 import io.ushakov.bike_workouts.ui.components.ButtonStatus
 import io.ushakov.bike_workouts.ui.components.SectionTitle
-import io.ushakov.bike_workouts.ui.theme.Blue800
+import io.ushakov.bike_workouts.ui.components.ThemedTopAppBar
 import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.myapplication.ui.theme.Typography
 import java.util.*
@@ -163,7 +163,7 @@ fun DeviceList(
 
 @Composable
 fun BluetoothSettingsAppBar(navController: NavController) {
-    TopAppBar(
+    ThemedTopAppBar(
         title = { Text(stringResource(R.string.bluetooth_setup_title)) },
         navigationIcon = {
             IconButton(onClick = {

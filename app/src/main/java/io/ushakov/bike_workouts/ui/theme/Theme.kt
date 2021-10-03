@@ -5,6 +5,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import io.ushakov.bike_workouts.ui.theme.*
 
 private val DarkColorPalette = darkColors(
@@ -32,8 +33,16 @@ private val LightColorPalette = lightColors(
 @Composable
 fun BikeWorkoutsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable() () -> Unit
+    content: @Composable() () -> Unit,
 ) {
+    val systemUi = rememberSystemUiController()
+
+    if (darkTheme) {
+        systemUi.setSystemBarsColor(DarkColorPalette.surface)
+    } else {
+        systemUi.setSystemBarsColor(LightColorPalette.surface)
+    }
+
     val colors = if (darkTheme) {
         DarkColorPalette
     } else {
@@ -46,4 +55,5 @@ fun BikeWorkoutsTheme(
         shapes = Shapes,
         content = content
     )
+
 }

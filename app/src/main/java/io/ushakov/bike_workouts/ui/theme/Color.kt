@@ -24,5 +24,6 @@ val Orange200 = Color(0xFFFFE082)
 val Orange100 = Color(0xFFFFECB3)
 val Orange50 = Color(0xFFFFF8E1)
 
-val PrimaryOverlay = Color(0xFFE3F2FD)
+val PrimaryOverlay = Color(0x80BBDEFB)
+val PrimaryOverlayDark = Color(0x801E88E5)
 val Black4 = Color(0x0A000000)

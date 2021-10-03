@@ -30,6 +30,7 @@ import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.WorkoutSummary
 import io.ushakov.bike_workouts.ui.components.ComposableMap
 import io.ushakov.bike_workouts.ui.components.SectionTitle
+import io.ushakov.bike_workouts.ui.components.ThemedTopAppBar
 import io.ushakov.bike_workouts.ui.components.WorkoutColumnItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -47,7 +48,7 @@ fun Main(navController: NavController, userId: Long) {
             Column(Modifier
                 .height(400.dp)
                 .fillMaxWidth()
-                .background(brush = Brush.verticalGradient(colors = listOf(Color.White,
+                .background(brush = Brush.verticalGradient(colors = listOf(MaterialTheme.colors.surface,
                     Color.Transparent), startY = 250f))
                 .align(Alignment.TopCenter)
                 .padding(horizontal = 16.dp)
@@ -61,7 +62,7 @@ fun Main(navController: NavController, userId: Long) {
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .background(brush = Brush.verticalGradient(colors = listOf(Color.Transparent,
-                        Color.White)))
+                        MaterialTheme.colors.surface)))
                     .padding(vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -79,7 +80,7 @@ fun Main(navController: NavController, userId: Long) {
 
 @Composable
 fun MainAppBar(navController: NavController) {
-    TopAppBar(
+    ThemedTopAppBar(
         navigationIcon = {
             IconButton(onClick = { }) {
                 Icon(Icons.Default.AccountCircle, "Account")
@@ -94,7 +95,6 @@ fun MainAppBar(navController: NavController) {
                 Icon(Icons.Default.Bluetooth, "Bluetooth")
             }
         },
-        backgroundColor = Color.White,
         elevation = 0.dp
     )
 }
