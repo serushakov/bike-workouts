@@ -24,6 +24,7 @@ import io.ushakov.bike_workouts.db.entity.Location
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.db.entity.WorkoutComplete
 import io.ushakov.bike_workouts.ui.components.ComposableMap
+import io.ushakov.bike_workouts.ui.components.SectionTitleText
 import io.ushakov.bike_workouts.ui.theme.Blue800
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlay
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlayDark
@@ -58,6 +59,10 @@ fun WorkoutDetails(workoutId: Long?) {
             WorkoutMapView(locations = locations)
             Header(workout)
             Divider()
+            InfoRow(titleStart = "Duration",
+                valueStart = "0:45:34",
+                titleEnd = "Distance",
+                valueEnd = "12.45km")
         }
     }
 }
@@ -90,7 +95,9 @@ fun Header(workout: Workout) {
                 text = "Cycling",
                 style = Typography.h4,
             )
-            TimeInterval(start = workout.startAt, end = workout.finishAt, Modifier.offset(y = (-5).dp))
+            TimeInterval(start = workout.startAt,
+                end = workout.finishAt,
+                Modifier.offset(y = (-5).dp))
         }
     }
 }
@@ -123,6 +130,36 @@ fun BicycleIcon() {
     )
 }
 
+@Composable
+fun InfoRow(
+    titleStart: String,
+    valueStart: String,
+    titleEnd: String,
+    valueEnd: String,
+) {
+    Row(modifier = Modifier.padding(all = 16.dp)) {
+        Column(
+            Modifier
+                .padding(end = 16.dp)
+                .weight(1f)
+        ) {
+            SectionTitleText(titleStart)
+            Text(
+                text = valueStart,
+                style = Typography.h5
+            )
+        }
+        Column(
+            Modifier.weight(1f)
+        ) {
+            SectionTitleText(titleEnd)
+            Text(
+                text = valueEnd,
+                style = Typography.h5
+            )
+        }
+    }
+}
 
 @Composable
 fun WorkoutMapView(locations: List<Location>) {

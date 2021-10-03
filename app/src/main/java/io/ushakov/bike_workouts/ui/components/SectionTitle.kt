@@ -14,12 +14,17 @@ import io.ushakov.bike_workouts.ui.theme.Typography
 
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+    SectionTitleText(text = text, modifier = modifier)
+    Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+fun SectionTitleText(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text.uppercase(),
         modifier = modifier,
         style = Typography.overline,
-        color = if(isSystemInDarkTheme()) Blue700 else Blue800,
+        color = if (isSystemInDarkTheme()) Blue700 else Blue800,
         fontWeight = FontWeight.SemiBold
     )
-    Spacer(Modifier.height(8.dp))
 }
