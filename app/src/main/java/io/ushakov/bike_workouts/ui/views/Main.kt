@@ -102,7 +102,6 @@ fun MainAppBar(navController: NavController) {
 @Composable
 fun LastWorkoutItem(navController: NavController, userId: Long) {
     val application = LocalContext.current.applicationContext as WorkoutApplication
-
     var lastWorkout by remember { mutableStateOf<WorkoutSummary?>(null) }
 
     LaunchedEffect(userId) {
@@ -119,7 +118,7 @@ fun LastWorkoutItem(navController: NavController, userId: Long) {
     WorkoutColumnItem(date = workout.startAt,
         distance = summary.distance,
         kcal = summary.kiloCalories) {
-        // TODO: Navigate to workout summary screen
+        navController.navigate("workout_details/${workout.id}")
     }
 }
 

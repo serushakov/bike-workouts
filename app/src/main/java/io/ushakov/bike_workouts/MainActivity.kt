@@ -18,11 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import io.ushakov.bike_workouts.ui.views.BluetoothSettings
 import io.ushakov.bike_workouts.ui.views.Main
+import io.ushakov.bike_workouts.ui.views.WorkoutDetails
 import io.ushakov.bike_workouts.ui.views.WorkoutHistory
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
 
@@ -128,6 +131,10 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                 }
+            }
+            composable("workout_details/{workoutId}",
+                arguments = listOf(navArgument("workoutId") { type = NavType.LongType })) { backStackEntry ->
+                WorkoutDetails(workoutId = backStackEntry.arguments?.getLong("workoutId"))
             }
         }
     }
