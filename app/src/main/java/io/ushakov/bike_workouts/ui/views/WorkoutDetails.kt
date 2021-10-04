@@ -20,10 +20,7 @@ import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.GoogleMap
 import com.google.android.libraries.maps.model.*
 import io.ushakov.bike_workouts.WorkoutApplication
-import io.ushakov.bike_workouts.db.entity.Location
-import io.ushakov.bike_workouts.db.entity.Summary
-import io.ushakov.bike_workouts.db.entity.Workout
-import io.ushakov.bike_workouts.db.entity.WorkoutComplete
+import io.ushakov.bike_workouts.db.entity.*
 import io.ushakov.bike_workouts.ui.components.ComposableMap
 import io.ushakov.bike_workouts.ui.components.SectionTitleText
 import io.ushakov.bike_workouts.ui.theme.Blue800
@@ -86,6 +83,11 @@ fun WorkoutDetails(workoutId: Long?) {
                     start = workout.startAt,
                     end = workout.finishAt ?: Date(),
                     distance = summary.distance
+                )
+                Divider()
+                CaloriesAverageHeartRateRow(
+                    kcal = summary.kiloCalories,
+                    heartRates = heartRates
                 )
                 Divider()
 
@@ -237,12 +239,25 @@ fun DurationDistanceRow(
 ) {
     val diff = getDifferenceBetweenDates(start, end)
 
-    InfoRow(titleStart = "Duration",
+    InfoRow(titleStart = "⏱Duration",
         valueStart = "${diff.hours}:${
             diff.minutes.toString().padStart(2, '0')
         }:${diff.seconds.toString().padStart(2, '0')}",
-        titleEnd = "Distance",
+        titleEnd = "🗺Distance",
         valueEnd = "${String.format("%.2f", distance)}km")
+}
+
+@Composable
+fun CaloriesAverageHeartRateRow(
+    kcal: Int,
+    heartRates: List<HeartRate>
+) {
+    val averageHr = heartRates.map { it.heartRate }.average().toInt()
+
+    InfoRow(titleStart = "🔥Burned Calories",
+        valueStart = "${kcal}kcal",
+        titleEnd = "❤️Average Heartrate",
+        valueEnd = "${averageHr}bpm")
 }
 
 @Composable
