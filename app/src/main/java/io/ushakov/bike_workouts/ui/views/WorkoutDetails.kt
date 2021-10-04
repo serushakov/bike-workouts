@@ -72,7 +72,7 @@ fun WorkoutDetails(workoutId: Long?) {
         Surface(
             Modifier
                 .offset(y = (-8).dp)
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
         ) {
             Column {
 
@@ -85,52 +85,14 @@ fun WorkoutDetails(workoutId: Long?) {
                     distance = summary.distance
                 )
                 Divider()
-                CaloriesAverageHeartRateRow(
+
+                CaloriesHeartRateRow(
                     kcal = summary.kiloCalories,
                     heartRates = heartRates
                 )
                 Divider()
 
-                InfoRow(titleStart = "Duration",
-                    valueStart = "0:45:34",
-                    titleEnd = "Distance",
-                    valueEnd = "12.45km")
-                Divider()
-
-                InfoRow(titleStart = "Duration",
-                    valueStart = "0:45:34",
-                    titleEnd = "Distance",
-                    valueEnd = "12.45km")
-                Divider()
-
-                InfoRow(titleStart = "Duration",
-                    valueStart = "0:45:34",
-                    titleEnd = "Distance",
-                    valueEnd = "12.45km")
-                Divider()
-
-                InfoRow(titleStart = "Duration",
-                    valueStart = "0:45:34",
-                    titleEnd = "Distance",
-                    valueEnd = "12.45km")
-                Divider()
-
-                InfoRow(titleStart = "Duration",
-                    valueStart = "0:45:34",
-                    titleEnd = "Distance",
-                    valueEnd = "12.45km")
-                Divider()
-
-                InfoRow(titleStart = "Duration",
-                    valueStart = "0:45:34",
-                    titleEnd = "Distance",
-                    valueEnd = "12.45km")
-                Divider()
-
-                InfoRow(titleStart = "Duration",
-                    valueStart = "0:45:34",
-                    titleEnd = "Distance",
-                    valueEnd = "12.45km")
+                ElevationSpeedRow(locations)
                 Divider()
             }
         }
@@ -248,7 +210,7 @@ fun DurationDistanceRow(
 }
 
 @Composable
-fun CaloriesAverageHeartRateRow(
+fun CaloriesHeartRateRow(
     kcal: Int,
     heartRates: List<HeartRate>
 ) {
@@ -258,6 +220,20 @@ fun CaloriesAverageHeartRateRow(
         valueStart = "${kcal}kcal",
         titleEnd = "❤️Average Heartrate",
         valueEnd = "${averageHr}bpm")
+}
+
+@Composable
+fun ElevationSpeedRow(
+    locations: List<Location>
+) {
+    val elevations = locations.map { it.elevation.toInt() }
+    val maxElevation = elevations.maxOrNull()
+    val minElevation = elevations.minOrNull()
+
+    InfoRow(titleStart = "🏔️Elevation",
+        valueStart = "${maxElevation}🔺 ${minElevation}🔻",
+        titleEnd = "🚴‍️Average speed",
+        valueEnd = "${String.format("%.1f", locations.map { it.speed }.average())}km/h")
 }
 
 @Composable
