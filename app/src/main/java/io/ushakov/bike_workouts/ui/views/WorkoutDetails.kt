@@ -1,26 +1,27 @@
 package io.ushakov.bike_workouts.ui.views
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.util.Log
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.GoogleMap
 import com.google.android.libraries.maps.model.*
 import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.Location
+import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.db.entity.WorkoutComplete
 import io.ushakov.bike_workouts.ui.components.ComposableMap
@@ -29,8 +30,9 @@ import io.ushakov.bike_workouts.ui.theme.Blue800
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlay
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlayDark
 import io.ushakov.bike_workouts.ui.theme.Typography
+import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
+import java.lang.Float.min
 import java.util.*
-
 
 @Composable
 fun WorkoutDetails(workoutId: Long?) {
@@ -54,15 +56,81 @@ fun WorkoutDetails(workoutId: Long?) {
         workout == null
     ) return
 
-    Surface(Modifier.fillMaxSize()) {
-        Column {
+    val scrollState = rememberScrollState()
+
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+    ) {
+
+        Box(Modifier.graphicsLayer {
+            alpha = min(1f, 1 - (scrollState.value / 800f))
+            translationY = scrollState.value * 0.5f
+        }) {
             WorkoutMapView(locations = locations)
-            Header(workout)
-            Divider()
-            InfoRow(titleStart = "Duration",
-                valueStart = "0:45:34",
-                titleEnd = "Distance",
-                valueEnd = "12.45km")
+        }
+
+        Surface(
+            Modifier
+                .offset(y = (-8).dp)
+                .clip(RoundedCornerShape(16.dp))
+        ) {
+            Column {
+
+                Header(workout)
+                Divider()
+
+                DurationDistanceRow(
+                    start = workout.startAt,
+                    end = workout.finishAt ?: Date(),
+                    distance = summary.distance
+                )
+                Divider()
+
+                InfoRow(titleStart = "Duration",
+                    valueStart = "0:45:34",
+                    titleEnd = "Distance",
+                    valueEnd = "12.45km")
+                Divider()
+
+                InfoRow(titleStart = "Duration",
+                    valueStart = "0:45:34",
+                    titleEnd = "Distance",
+                    valueEnd = "12.45km")
+                Divider()
+
+                InfoRow(titleStart = "Duration",
+                    valueStart = "0:45:34",
+                    titleEnd = "Distance",
+                    valueEnd = "12.45km")
+                Divider()
+
+                InfoRow(titleStart = "Duration",
+                    valueStart = "0:45:34",
+                    titleEnd = "Distance",
+                    valueEnd = "12.45km")
+                Divider()
+
+                InfoRow(titleStart = "Duration",
+                    valueStart = "0:45:34",
+                    titleEnd = "Distance",
+                    valueEnd = "12.45km")
+                Divider()
+
+                InfoRow(titleStart = "Duration",
+                    valueStart = "0:45:34",
+                    titleEnd = "Distance",
+                    valueEnd = "12.45km")
+                Divider()
+
+                InfoRow(titleStart = "Duration",
+                    valueStart = "0:45:34",
+                    titleEnd = "Distance",
+                    valueEnd = "12.45km")
+                Divider()
+            }
         }
     }
 }
@@ -104,9 +172,9 @@ fun Header(workout: Workout) {
 
 @Composable
 fun TimeInterval(start: Date, end: Date?, modifier: Modifier = Modifier) {
-    val formattedStart = android.text.format.DateFormat.format("hh:mm", start)
+    val formattedStart = android.text.format.DateFormat.format("HH:mm", start)
     val formattedEnd =
-        if (end == null) null else android.text.format.DateFormat.format("hh:mm", end)
+        if (end == null) null else android.text.format.DateFormat.format("HH:mm", end)
 
     CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
         Text(
@@ -162,9 +230,24 @@ fun InfoRow(
 }
 
 @Composable
-fun WorkoutMapView(locations: List<Location>) {
-    var googleMap by remember { mutableStateOf<GoogleMap?>(null) }
+fun DurationDistanceRow(
+    start: Date,
+    end: Date,
+    distance: Double,
+) {
+    val diff = getDifferenceBetweenDates(start, end)
 
+    InfoRow(titleStart = "Duration",
+        valueStart = "${diff.hours}:${
+            diff.minutes.toString().padStart(2, '0')
+        }:${diff.seconds.toString().padStart(2, '0')}",
+        titleEnd = "Distance",
+        valueEnd = "${String.format("%.2f", distance)}km")
+}
+
+@Composable
+fun WorkoutMapView(locations: List<Location>, modifier: Modifier = Modifier) {
+    var googleMap by remember { mutableStateOf<GoogleMap?>(null) }
 
     DisposableEffect(locations, googleMap) {
         val map = googleMap ?: return@DisposableEffect onDispose { }
@@ -182,16 +265,19 @@ fun WorkoutMapView(locations: List<Location>) {
         locations.forEach { bounds.include(LatLng(it.latitude, it.longitude)) }
 
         map.setLatLngBoundsForCameraTarget(bounds.build())
-        map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 10))
+        map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 20))
 
         onDispose {
             polyLine.remove()
         }
     }
 
+    Log.d("WorkoutMapView", "render")
     ComposableMap(
-        Modifier.height(300.dp)
+        Modifier
+            .height(300.dp)
+            .composed { modifier }
     ) {
-        googleMap = it
+        if (googleMap == null) googleMap = it
     }
 }
