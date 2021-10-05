@@ -1,44 +1,64 @@
 package io.ushakov.bike_workouts.ui.components
 
 import android.os.Bundle
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import android.util.Log
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.google.android.libraries.maps.GoogleMap
+import com.google.android.libraries.maps.GoogleMapOptions
 import com.google.android.libraries.maps.MapView
 import com.google.maps.android.ktx.awaitMap
 import io.ushakov.bike_workouts.R
 import kotlinx.coroutines.launch
+
 
 @Composable
 fun ComposableMap(modifier: Modifier = Modifier, onInit: (googleMap: GoogleMap) -> Unit) {
     val mapViewWithLifecycle = rememberMapViewWithLifecycle()
     val scope = rememberCoroutineScope()
 
+    var mapReady by remember { mutableStateOf(false) }
+    val alpha: Float by animateFloatAsState(
+        if (mapReady) 1f else 0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+    )
+
+
     AndroidView(
-        modifier = modifier,
+        modifier = modifier.alpha(alpha),
         factory = { mapViewWithLifecycle }
     ) { mapView ->
         scope.launch {
             val map = mapView.awaitMap()
             onInit(map)
+
+            map.setOnMapLoadedCallback { mapReady = true }
         }
     }
 }
 
+
 @Composable
 fun rememberMapViewWithLifecycle(): MapView {
     val context = LocalContext.current
-    val mapView = remember {
-        MapView(context).apply {
+    val darkMode = isSystemInDarkTheme()
+
+    Log.d("dark mode", darkMode.toString())
+    val mapView = remember(darkMode) {
+        MapView(context,
+            GoogleMapOptions().mapId(if (darkMode) context.getString(R.string.dark_mode_map_id) else context.getString(
+                R.string.light_mode_map_id))).apply {
             id = R.id.map
+
         }
     }
 
