@@ -133,9 +133,9 @@ fun MapView() {
     val scope = rememberCoroutineScope()
     val mapView = rememberMapViewWithLifecycle()
     val context = LocalContext.current
-    val fusedLocationProviderClient = remember {
+    /*val fusedLocationProviderClient = remember {
         LocationServices.getFusedLocationProviderClient(context)
-    }
+    }*/
 
     var map by remember { mutableStateOf<GoogleMap?>(null) }
     var userLocation by remember { mutableStateOf<LatLng?>(null) }
@@ -149,7 +149,8 @@ fun MapView() {
         return
     }
 
-    DisposableEffect(fusedLocationProviderClient) {
+    //TODO following method gets location. Replace it with SharedPreferenceListener
+/*    DisposableEffect(fusedLocationProviderClient) {
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult?) {
                 val last = result?.locations?.last()
@@ -186,7 +187,7 @@ fun MapView() {
         onDispose {
             fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         }
-    }
+    }*/
 
     LaunchedEffect(map, userLocation) {
         if (map == null || userLocation == null) return@LaunchedEffect
