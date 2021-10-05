@@ -24,13 +24,16 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.ushakov.bike_workouts.data_engine.DataReceiver
+import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
 import io.ushakov.bike_workouts.ui.views.BluetoothSettings
 import io.ushakov.bike_workouts.ui.views.Main
 import io.ushakov.bike_workouts.ui.views.WorkoutHistory
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
+import io.ushakov.bike_workouts.util.Constants.EXTRA_HEART_RATE
 import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
 import kotlinx.coroutines.*
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 /*
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
@@ -49,8 +52,8 @@ class MainActivity : ComponentActivity() {
         startWorkoutService()
 
         //Initialize Broadcast receiver
-        val dataReceiver = DataReceiver()
-        dataReceiver.let {
+        val workoutDataReceiver = WorkoutDataReceiver()
+        workoutDataReceiver.let {
             LocalBroadcastManager.getInstance(this)
                 .registerReceiver(it,IntentFilter(ACTION_BROADCAST))
         }
