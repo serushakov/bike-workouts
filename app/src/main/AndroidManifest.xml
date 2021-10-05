@@ -33,6 +33,8 @@
 
         <service
             android:name=".WorkoutService"
+            android:enabled="true"
+            android:exported="false"
             android:foregroundServiceType="location" />
 
         <activity
