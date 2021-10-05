@@ -7,4 +7,6 @@
     <string name="navigation_back">Back</string>
     <string name="bluetooth_device_search_list_title">Discovered devices</string>
     <string name="device_list_item_button_label">Pair</string>
+    <string name="light_mode_map_id">3778d73ddaab8c0f</string>
+    <string name="dark_mode_map_id">5cec2ff9ec93090</string>
 </resources>
