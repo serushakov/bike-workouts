@@ -18,4 +18,8 @@ interface LocationDao {
     //@Insert(onConflict = OnConflictStrategy.REPLACE)
     @Insert
     suspend fun insert(location: Location): Long
+
+
+    @Query("SELECT * FROM location WHERE location.workoutId=:workoutId")
+    fun getLocationsForWorkout(workoutId: Long): LiveData<List<Location>>
 }
