@@ -5,6 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
 import org.jetbrains.annotations.NotNull
+import java.util.*
 
 @Entity(
     foreignKeys = [
@@ -20,13 +21,15 @@ data class HeartRate(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
     val workoutId: Long,
-    val heartRate: Int
+    val heartRate: Int,
+    val timestamp: Date
     ) {
 
     constructor(
         @NotNull workoutId: Long,
-        @NotNull heartRate: Int
+        @NotNull heartRate: Int,
+        @NotNull timestamp: Date
     ) : this(
-        0, workoutId, heartRate
+        0, workoutId, heartRate, timestamp
         )
 }
