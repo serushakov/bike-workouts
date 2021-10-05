@@ -33,10 +33,6 @@ import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
 */
 class MainActivity : ComponentActivity() {
-
-
-    @ExperimentalAnimationApi
-    @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -49,9 +45,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
-    @ExperimentalAnimationApi
-    @ExperimentalMaterialApi
     @Composable
     fun View() {
         val navController = rememberNavController()
@@ -111,7 +104,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        NavHost(navController = navController, startDestination = "main", ) {
+        NavHost(navController = navController, startDestination = "main") {
             composable("main") {
                 Main(navController, 1)
             }
@@ -133,8 +126,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
             composable("workout_details/{workoutId}",
-                arguments = listOf(navArgument("workoutId") { type = NavType.LongType })) { backStackEntry ->
-                WorkoutDetails(workoutId = backStackEntry.arguments?.getLong("workoutId"))
+                arguments = listOf(navArgument("workoutId") {
+                    type = NavType.LongType
+                })) { backStackEntry ->
+                WorkoutDetails(navController, workoutId = backStackEntry.arguments?.getLong("workoutId"))
             }
         }
     }

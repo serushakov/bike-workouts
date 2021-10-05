@@ -33,8 +33,6 @@ import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.ui.theme.Typography
 import java.util.*
 
-@ExperimentalAnimationApi
-@ExperimentalMaterialApi
 @Composable
 fun BluetoothSettings(
     navController: NavController,
@@ -51,8 +49,6 @@ fun BluetoothSettings(
     }
 }
 
-@ExperimentalAnimationApi
-@ExperimentalMaterialApi
 @Composable
 internal fun View(
     onDevicePair: (deviceAddress: String) -> Unit,
@@ -79,8 +75,7 @@ internal fun View(
     }
 }
 
-@ExperimentalAnimationApi
-@ExperimentalMaterialApi
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun ConnectedDevice(
     device: RxBleDevice?,
