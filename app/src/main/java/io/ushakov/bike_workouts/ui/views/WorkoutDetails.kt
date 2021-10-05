@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,7 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.GoogleMap
 import com.google.android.libraries.maps.model.*
@@ -31,7 +34,7 @@ import java.lang.Float.min
 import java.util.*
 
 @Composable
-fun WorkoutDetails(workoutId: Long?) {
+fun WorkoutDetails(navController: NavController, workoutId: Long?) {
     val application = LocalContext.current.applicationContext as WorkoutApplication
     var workoutComplete by remember { mutableStateOf<WorkoutComplete?>(null) }
 
@@ -66,6 +69,7 @@ fun WorkoutDetails(workoutId: Long?) {
             translationY = scrollState.value * 0.5f
         }) {
             WorkoutMapView(locations = locations)
+            BackButton(navController)
         }
 
         Surface(
@@ -95,6 +99,23 @@ fun WorkoutDetails(workoutId: Long?) {
                 Divider()
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun BackButton(navController: NavController) {
+    Surface(
+        shape = CircleShape,
+        onClick = {
+            navController.popBackStack()
+        },
+        role = Role.Button,
+        elevation = 2.dp,
+        contentColor = MaterialTheme.colors.primary,
+        modifier = Modifier.offset(x = 16.dp, y = 16.dp)
+    ) {
+        Icon(Icons.Default.ArrowBack, "Back", Modifier.padding(all = 8.dp))
     }
 }
 
