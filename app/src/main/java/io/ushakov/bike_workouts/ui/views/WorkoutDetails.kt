@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -212,7 +211,7 @@ fun DurationDistanceRow(
 @Composable
 fun CaloriesHeartRateRow(
     kcal: Int,
-    heartRates: List<HeartRate>
+    heartRates: List<HeartRate>,
 ) {
     val averageHr = heartRates.map { it.heartRate }.average().toInt()
 
@@ -224,7 +223,7 @@ fun CaloriesHeartRateRow(
 
 @Composable
 fun ElevationSpeedRow(
-    locations: List<Location>
+    locations: List<Location>,
 ) {
     val elevations = locations.map { it.elevation.toInt() }
     val maxElevation = elevations.maxOrNull()
@@ -265,9 +264,8 @@ fun WorkoutMapView(locations: List<Location>, modifier: Modifier = Modifier) {
 
     Log.d("WorkoutMapView", "render")
     ComposableMap(
-        Modifier
+        modifier
             .height(300.dp)
-            .composed { modifier }
     ) {
         if (googleMap == null) googleMap = it
     }
