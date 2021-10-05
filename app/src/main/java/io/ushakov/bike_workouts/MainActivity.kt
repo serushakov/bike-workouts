@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -18,16 +19,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.core.content.ContextCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
+import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.BluetoothSettings
 import io.ushakov.bike_workouts.ui.views.Main
 import io.ushakov.bike_workouts.ui.views.WorkoutDetails
 import io.ushakov.bike_workouts.ui.views.WorkoutHistory
-import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
+import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 
 /*
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
@@ -37,6 +45,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         HeartRateDeviceManager.initialize(applicationContext)
+        //TODO Start workout service. (Temp code, remove later)
+        // Added for testing, later we decide from where it will gonna start.
+        startWorkoutService()
+
+        //Initialize Broadcast receiver
+        val workoutDataReceiver = WorkoutDataReceiver()
+        workoutDataReceiver.let {
+            LocalBroadcastManager.getInstance(this)
+                .registerReceiver(it, IntentFilter(ACTION_BROADCAST))
+        }
 
         setContent {
             BikeWorkoutsTheme {
@@ -44,6 +62,14 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onDestroy() {
+        stopWorkoutService()
+        //TODO Remember to remove it. Dummy HR readings are running in this scope.
+        CoroutineScope(Dispatchers.IO).cancel("MainActivity is closed")
+        super.onDestroy()
+    }
+
 
     @Composable
     fun View() {
@@ -93,10 +119,31 @@ class MainActivity : ComponentActivity() {
             if (pairedDevice == null) {
                 HeartRateDeviceManager.getInstance().forgetDevice()
 
+                //TODO Dummy Heart rate reading
+                // Remove it later.
+                Log.d("DBG", "Starting Dummy Heart rate reading....")
+
+                /*CoroutineScope(Dispatchers.IO).launch {
+                    while (true) {
+                        delay(1234)
+                        val intentForDataReceiver = Intent(ACTION_BROADCAST)
+                        intentForDataReceiver.putExtra(EXTRA_HEART_RATE, Random.nextInt(50..150))
+                        LocalBroadcastManager.getInstance(applicationContext)
+                            .sendBroadcast(intentForDataReceiver)
+                    }
+                }*/
+
                 return@DisposableEffect onDispose { }
             }
 
             val disposable = HeartRateDeviceManager.getInstance().subscribe {
+                //TODO Forward this value to BroadCast receiver
+                // Notify anyone listening for broadcasts about the Heart Rate
+
+                /*val intentForDataReceiver = Intent(ACTION_BROADCAST)
+                intentForDataReceiver.putExtra(EXTRA_HEART_RATE, it)
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intentForDataReceiver)*/
+
                 Log.d("HEARTRATE", it.toString())
             }
             onDispose {
@@ -144,12 +191,22 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun stopWorkoutService() {
+        Log.d("DBG", "Stopping Workout Service.......")
         val intentStop = Intent(this, WorkoutService::class.java)
         stopService(intentStop)
+        Log.d("DBG", "Workout Service stopped")
+
     }
 
     private fun startWorkoutService() {
-        startService(Intent(this, WorkoutService::class.java))
+        //startService(Intent(this, WorkoutService::class.java))
+        Log.d("DBG", "Starting Workout Service.......")
+
+        val workoutServiceIntent = Intent(this, WorkoutService::class.java)
+        workoutServiceIntent.putExtra("SOME_EXTRA_INPUT", "Todo See later")
+        ContextCompat.startForegroundService(this, workoutServiceIntent)
+        Log.d("DBG", "Workout Service started")
+
     }
 
 

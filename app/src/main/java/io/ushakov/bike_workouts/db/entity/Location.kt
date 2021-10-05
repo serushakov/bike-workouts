@@ -5,6 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
 import org.jetbrains.annotations.NotNull
+import java.util.*
 
 @Entity(
     foreignKeys = [
@@ -23,7 +24,8 @@ data class Location(
     val latitude: Double,
     val longitude: Double,
     val speed: Float,
-    val elevation: Float
+    val elevation: Float,
+    val timestamp: Date
 ) {
 
     constructor(
@@ -31,8 +33,9 @@ data class Location(
         @NotNull latitude: Double,
         @NotNull longitude: Double,
         @NotNull speed: Float,
-        @NotNull elevation: Float
+        @NotNull elevation: Float,
+        @NotNull timestamp: Date
     ) : this(
-        0, workoutId, latitude, longitude, speed, elevation
+        0, workoutId, latitude, longitude, speed, elevation, timestamp
     )
 }

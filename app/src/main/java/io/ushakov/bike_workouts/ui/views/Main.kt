@@ -3,6 +3,7 @@ package io.ushakov.bike_workouts.ui.views
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Bundle
 import android.os.Looper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,13 +18,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.google.android.gms.location.*
 import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.GoogleMap
+import com.google.android.libraries.maps.MapView
 import com.google.android.libraries.maps.model.*
+import com.google.maps.android.ktx.awaitMap
 import io.ushakov.bike_workouts.MainActivity
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.WorkoutApplication
@@ -33,6 +40,7 @@ import io.ushakov.bike_workouts.ui.components.SectionTitle
 import io.ushakov.bike_workouts.ui.components.ThemedTopAppBar
 import io.ushakov.bike_workouts.ui.components.WorkoutColumnItem
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
@@ -48,7 +56,7 @@ fun Main(navController: NavController, userId: Long) {
             Column(Modifier
                 .height(400.dp)
                 .fillMaxWidth()
-                .background(brush = Brush.verticalGradient(colors = listOf(MaterialTheme.colors.surface,
+                .background(brush = Brush.verticalGradient(colors = listOf(Color.White,
                     Color.Transparent), startY = 250f))
                 .align(Alignment.TopCenter)
                 .padding(horizontal = 16.dp)
@@ -62,7 +70,7 @@ fun Main(navController: NavController, userId: Long) {
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .background(brush = Brush.verticalGradient(colors = listOf(Color.Transparent,
-                        MaterialTheme.colors.surface)))
+                        Color.White)))
                     .padding(vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -80,7 +88,7 @@ fun Main(navController: NavController, userId: Long) {
 
 @Composable
 fun MainAppBar(navController: NavController) {
-    ThemedTopAppBar(
+    TopAppBar(
         navigationIcon = {
             IconButton(onClick = { }) {
                 Icon(Icons.Default.AccountCircle, "Account")
@@ -95,6 +103,7 @@ fun MainAppBar(navController: NavController) {
                 Icon(Icons.Default.Bluetooth, "Bluetooth")
             }
         },
+        backgroundColor = Color.White,
         elevation = 0.dp
     )
 }
@@ -102,6 +111,7 @@ fun MainAppBar(navController: NavController) {
 @Composable
 fun LastWorkoutItem(navController: NavController, userId: Long) {
     val application = LocalContext.current.applicationContext as WorkoutApplication
+
     var lastWorkout by remember { mutableStateOf<WorkoutSummary?>(null) }
 
     LaunchedEffect(userId) {
@@ -168,7 +178,6 @@ fun rememberUserLocation(): LatLng? {
     ) {
         return userLocation
     }
-
 
     DisposableEffect(fusedLocationProviderClient) {
         val locationCallback = object : LocationCallback() {
