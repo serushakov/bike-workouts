@@ -129,7 +129,8 @@ class MainActivity : ComponentActivity() {
                 arguments = listOf(navArgument("workoutId") {
                     type = NavType.LongType
                 })) { backStackEntry ->
-                WorkoutDetails(navController, workoutId = backStackEntry.arguments?.getLong("workoutId"))
+                WorkoutDetails(navController,
+                    workoutId = backStackEntry.arguments?.getLong("workoutId"))
             }
         }
     }
