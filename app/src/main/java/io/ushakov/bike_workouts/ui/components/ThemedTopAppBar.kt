@@ -36,7 +36,7 @@ fun ThemedTopAppBar(
         modifier = modifier,
         backgroundColor = MaterialTheme.colors.surface,
         elevation = elevation,
-        contentColor = MaterialTheme.colors.primary,
+        contentColor = MaterialTheme.colors.onSurface,
         title = title,
         navigationIcon = navigationIcon,
         actions = {

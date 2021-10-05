@@ -105,14 +105,15 @@ fun WorkoutDetails(navController: NavController, workoutId: Long?) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BackButton(navController: NavController) {
+
     Surface(
         shape = CircleShape,
         onClick = {
             navController.popBackStack()
         },
         role = Role.Button,
-        elevation = 2.dp,
-        contentColor = MaterialTheme.colors.primary,
+        elevation = 12.dp,
+        contentColor = if (isSystemInDarkTheme()) MaterialTheme.colors.onSurface else MaterialTheme.colors.primary,
         modifier = Modifier.offset(x = 16.dp, y = 16.dp)
     ) {
         Icon(Icons.Default.ArrowBack, "Back", Modifier.padding(all = 8.dp))
