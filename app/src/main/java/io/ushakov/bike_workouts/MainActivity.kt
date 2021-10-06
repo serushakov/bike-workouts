@@ -12,7 +12,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.*
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -21,28 +20,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
+import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.BluetoothSettings
 import io.ushakov.bike_workouts.ui.views.Main
+import io.ushakov.bike_workouts.ui.views.WorkoutDetails
 import io.ushakov.bike_workouts.ui.views.WorkoutHistory
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
-import io.ushakov.bike_workouts.util.Constants.EXTRA_HEART_RATE
-import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
-import kotlinx.coroutines.*
-import kotlin.random.Random
-import kotlin.random.nextInt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 
 /*
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
 */
 class MainActivity : ComponentActivity() {
-
-
-    @ExperimentalAnimationApi
-    @ExperimentalMaterialApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -55,7 +52,7 @@ class MainActivity : ComponentActivity() {
         val workoutDataReceiver = WorkoutDataReceiver()
         workoutDataReceiver.let {
             LocalBroadcastManager.getInstance(this)
-                .registerReceiver(it,IntentFilter(ACTION_BROADCAST))
+                .registerReceiver(it, IntentFilter(ACTION_BROADCAST))
         }
 
         setContent {
@@ -73,8 +70,6 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    @ExperimentalAnimationApi
-    @ExperimentalMaterialApi
     @Composable
     fun View() {
         val navController = rememberNavController()
@@ -175,6 +170,13 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                 }
+            }
+            composable("workout_details/{workoutId}",
+                arguments = listOf(navArgument("workoutId") {
+                    type = NavType.LongType
+                })) { backStackEntry ->
+                WorkoutDetails(navController,
+                    workoutId = backStackEntry.arguments?.getLong("workoutId"))
             }
         }
     }

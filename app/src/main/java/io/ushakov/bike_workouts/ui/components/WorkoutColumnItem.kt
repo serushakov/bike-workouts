@@ -2,11 +2,16 @@ package io.ushakov.bike_workouts.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,9 +24,9 @@ import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.ui.theme.Black4
 import io.ushakov.bike_workouts.ui.theme.Blue800
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlay
-import io.ushakov.myapplication.ui.theme.Typography
+import io.ushakov.bike_workouts.ui.theme.PrimaryOverlayDark
+import io.ushakov.bike_workouts.ui.theme.Typography
 import java.text.DateFormat
-import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
@@ -31,42 +36,46 @@ fun WorkoutColumnItem(
     kcal: Int,
     onClick: () -> Unit,
 ) {
-    Row(Modifier
-        .background(Color.White)
+
+    val darkTheme = isSystemInDarkTheme()
+
+    Card(Modifier
         .fillMaxWidth()
         .clip(RoundedCornerShape(8.dp))) {
-
-        Row(
-            modifier = Modifier
-                .background(Black4)
-                .fillMaxWidth()
-                .clickable { onClick() }
-                .padding(all = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                content = {
-                    BicycleIcon()
-                },
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(PrimaryOverlay),
-                contentAlignment = Alignment.Center
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(
-                modifier = Modifier.weight(2F),
-                content = {
-                    DateText(date = date)
-                    Spacer(modifier = Modifier.size(4.dp))
-                    Text(
-                        text = "${distance}km, ${kcal}kcal",
-                        style = Typography.h6
-                    )
-                })
-            Spacer(modifier = Modifier.size(16.dp))
-            ArrowForward()
+        Row {
+            Row(
+                modifier =
+                Modifier
+                    .background(if(darkTheme) Color.Transparent else Black4)
+                    .fillMaxWidth()
+                    .clickable { onClick() }
+                    .padding(all = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    content = {
+                        BicycleIcon()
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(if (darkTheme) PrimaryOverlayDark else PrimaryOverlay),
+                    contentAlignment = Alignment.Center
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(
+                    modifier = Modifier.weight(2F),
+                    content = {
+                        DateText(date = date)
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text(
+                            text = "${distance}km, ${kcal}kcal",
+                            style = Typography.h6
+                        )
+                    })
+                Spacer(modifier = Modifier.size(16.dp))
+                ArrowForward()
+            }
         }
     }
 }
@@ -91,10 +100,12 @@ fun WorkoutColumnItemPreview() {
 
 @Composable
 fun BicycleIcon() {
+    val darkTheme = isSystemInDarkTheme()
+
     Icon(
-        painter = painterResource(R.drawable.ic_baseline_directions_bike_24),
+        Icons.Default.DirectionsBike,
         contentDescription = "Bicycle image",
-        tint = Blue800,
+        tint = if (darkTheme) MaterialTheme.colors.onSurface else Blue800,
         modifier = Modifier
             .size(24.dp)
     )
@@ -105,7 +116,7 @@ fun ArrowForward() {
     Icon(
         painter = painterResource(R.drawable.ic_baseline_arrow_forward_ios_24),
         contentDescription = "Right Arrow image",
-        tint = Color.Black,
+        tint = MaterialTheme.colors.onSurface,
         modifier = Modifier
             .size(24.dp)
     )

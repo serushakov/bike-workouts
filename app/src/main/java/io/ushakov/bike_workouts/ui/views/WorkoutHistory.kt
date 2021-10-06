@@ -18,8 +18,9 @@ import androidx.navigation.compose.rememberNavController
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.WorkoutSummary
+import io.ushakov.bike_workouts.ui.components.ThemedTopAppBar
 import io.ushakov.bike_workouts.ui.components.WorkoutList
-import io.ushakov.myapplication.ui.theme.BikeWorkoutsTheme
+import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 
@@ -61,7 +62,7 @@ fun WorkoutHistory(
 
 @Composable
 fun AppBar(navController: NavController) {
-    TopAppBar(
+    ThemedTopAppBar(
         title = { Text("Workout history") },
         navigationIcon = {
             IconButton(onClick = {

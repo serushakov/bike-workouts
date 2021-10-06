@@ -37,7 +37,6 @@ data class Workout(
 }
 
 class WorkoutHeartRate {
-
     @Embedded
     var workout: Workout? = null
 
@@ -49,7 +48,6 @@ class WorkoutHeartRate {
 }
 
 class WorkoutLocation {
-
     @Embedded
     var workout: Workout? = null
 
@@ -61,7 +59,6 @@ class WorkoutLocation {
 }
 
 class WorkoutSummary {
-
     @Embedded
     var workout: Workout? = null
 
@@ -70,5 +67,27 @@ class WorkoutSummary {
         entityColumn = "workoutId"
     )
     var summary: Summary? = null
+}
 
+class WorkoutComplete {
+    @Embedded
+    var workout: Workout? = null
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "workoutId"
+    )
+    var heartRates: List<HeartRate>? = null
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "workoutId"
+    )
+    var locations: List<Location>? = null
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "workoutId"
+    )
+    var summary: Summary? = null
 }

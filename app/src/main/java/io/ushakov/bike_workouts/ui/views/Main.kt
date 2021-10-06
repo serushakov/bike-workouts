@@ -3,7 +3,6 @@ package io.ushakov.bike_workouts.ui.views
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.os.Bundle
 import android.os.Looper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,27 +17,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.google.android.gms.location.*
 import com.google.android.libraries.maps.CameraUpdateFactory
 import com.google.android.libraries.maps.GoogleMap
-import com.google.android.libraries.maps.MapView
 import com.google.android.libraries.maps.model.*
-import com.google.maps.android.ktx.awaitMap
 import io.ushakov.bike_workouts.MainActivity
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.WorkoutSummary
+import io.ushakov.bike_workouts.ui.components.ComposableMap
 import io.ushakov.bike_workouts.ui.components.SectionTitle
+import io.ushakov.bike_workouts.ui.components.ThemedTopAppBar
 import io.ushakov.bike_workouts.ui.components.WorkoutColumnItem
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
@@ -54,7 +48,7 @@ fun Main(navController: NavController, userId: Long) {
             Column(Modifier
                 .height(400.dp)
                 .fillMaxWidth()
-                .background(brush = Brush.verticalGradient(colors = listOf(Color.White,
+                .background(brush = Brush.verticalGradient(colors = listOf(MaterialTheme.colors.surface,
                     Color.Transparent), startY = 250f))
                 .align(Alignment.TopCenter)
                 .padding(horizontal = 16.dp)
@@ -68,7 +62,7 @@ fun Main(navController: NavController, userId: Long) {
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .background(brush = Brush.verticalGradient(colors = listOf(Color.Transparent,
-                        Color.White)))
+                        MaterialTheme.colors.surface)))
                     .padding(vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -86,7 +80,7 @@ fun Main(navController: NavController, userId: Long) {
 
 @Composable
 fun MainAppBar(navController: NavController) {
-    TopAppBar(
+    ThemedTopAppBar(
         navigationIcon = {
             IconButton(onClick = { }) {
                 Icon(Icons.Default.AccountCircle, "Account")
@@ -101,7 +95,6 @@ fun MainAppBar(navController: NavController) {
                 Icon(Icons.Default.Bluetooth, "Bluetooth")
             }
         },
-        backgroundColor = Color.White,
         elevation = 0.dp
     )
 }
@@ -120,37 +113,64 @@ fun LastWorkoutItem(navController: NavController, userId: Long) {
 
     val workout = lastWorkout?.workout
     val summary = lastWorkout?.summary
-    if(workout == null ||  summary == null) return
+    if (workout == null || summary == null) return
 
     SectionTitle(text = "Last workout")
-    WorkoutColumnItem(date = workout.startAt, distance = summary.distance, kcal = summary.kiloCalories) {
-        // TODO: Navigate to workout summary screen
+    WorkoutColumnItem(date = workout.startAt,
+        distance = summary.distance,
+        kcal = summary.kiloCalories) {
+        navController.navigate("workout_details/${workout.id}")
     }
 }
 
 @Composable
 fun MapView() {
-    val scope = rememberCoroutineScope()
-    val mapView = rememberMapViewWithLifecycle()
-    val context = LocalContext.current
-    /*val fusedLocationProviderClient = remember {
-        LocationServices.getFusedLocationProviderClient(context)
-    }*/
-
     var map by remember { mutableStateOf<GoogleMap?>(null) }
-    var userLocation by remember { mutableStateOf<LatLng?>(null) }
     var userMarker by remember { mutableStateOf<Marker?>(null) }
+    val userLocation = rememberUserLocation()
+
+
+    LaunchedEffect(map, userLocation) {
+        if (map == null || userLocation == null) return@LaunchedEffect
+
+        if (userMarker != null) {
+            userMarker!!.position = userLocation
+        } else {
+            userMarker = map!!.addMarker(createUserMarker(userLocation))
+            map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                userLocation,
+                11f
+            ))
+        }
+    }
+
+    ComposableMap(
+        modifier = Modifier.padding(top = 40.dp),
+    ) { googleMap ->
+        map = googleMap
+    }
+}
+
+@Composable
+fun rememberUserLocation(): LatLng? {
+    val context = LocalContext.current
+    val fusedLocationProviderClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    var userLocation by remember { mutableStateOf<LatLng?>(null) }
+
+
 
     if (ActivityCompat.checkSelfPermission(context,
             Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
     ) {
-        return
+        return userLocation
     }
 
-    //TODO following method gets location. Replace it with SharedPreferenceListener
-/*    DisposableEffect(fusedLocationProviderClient) {
+    DisposableEffect(fusedLocationProviderClient) {
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult?) {
                 val last = result?.locations?.last()
@@ -160,11 +180,11 @@ fun MapView() {
             }
         }
 
-        val locationRequest = LocationRequest.create();
+        val locationRequest = LocationRequest.create()
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         locationRequest.interval = 10000
 
-        // RequestLocationUpdates
+        // Request location updates
         fusedLocationProviderClient.requestLocationUpdates(locationRequest,
             locationCallback,
             Looper.getMainLooper())
@@ -187,31 +207,9 @@ fun MapView() {
         onDispose {
             fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         }
-    }*/
-
-    LaunchedEffect(map, userLocation) {
-        if (map == null || userLocation == null) return@LaunchedEffect
-
-        if (userMarker != null) {
-            userMarker!!.position = userLocation
-        } else {
-            userMarker = map!!.addMarker(createUserMarker(userLocation!!))
-            map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                userLocation,
-                11f
-            ))
-        }
-
     }
 
-    AndroidView(
-        modifier = Modifier.padding(top = 40.dp),
-        factory = { mapView }
-    ) { mapView ->
-        scope.launch {
-            map = mapView.awaitMap()
-        }
-    }
+    return userLocation
 }
 
 fun createUserMarker(position: LatLng): MarkerOptions? {
@@ -224,41 +222,4 @@ fun createUserMarker(position: LatLng): MarkerOptions? {
         .anchor(0.5f, 0.5f)
 }
 
-@Composable
-fun rememberMapViewWithLifecycle(): MapView {
-    val context = LocalContext.current
-    val mapView = remember {
-        MapView(context).apply {
-            id = R.id.map
-        }
-    }
-
-    // Makes MapView follow the lifecycle of this composable
-    val lifecycleObserver = rememberMapLifecycleObserver(mapView)
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(lifecycle) {
-        lifecycle.addObserver(lifecycleObserver)
-        onDispose {
-            lifecycle.removeObserver(lifecycleObserver)
-        }
-    }
-
-    return mapView
-}
-
-@Composable
-fun rememberMapLifecycleObserver(mapView: MapView): LifecycleEventObserver =
-    remember(mapView) {
-        LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_CREATE -> mapView.onCreate(Bundle())
-                Lifecycle.Event.ON_START -> mapView.onStart()
-                Lifecycle.Event.ON_RESUME -> mapView.onResume()
-                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                Lifecycle.Event.ON_STOP -> mapView.onStop()
-                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
-                else -> throw IllegalStateException()
-            }
-        }
-    }
 
