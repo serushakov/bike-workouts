@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,12 +37,7 @@ import java.util.*
 @Composable
 fun WorkoutDetails(navController: NavController, workoutId: Long?) {
     val application = LocalContext.current.applicationContext as WorkoutApplication
-    var workoutComplete by remember { mutableStateOf<WorkoutComplete?>(null) }
-
-    LaunchedEffect(workoutId) {
-        workoutComplete =
-            if (workoutId != null) application.workoutRepository.getCompleteWorkoutById(workoutId) else null
-    }
+    val workoutComplete by application.workoutRepository.getCompleteWorkoutById(workoutId ?: return).observeAsState()
 
     val locations = workoutComplete?.locations
     val heartRates = workoutComplete?.heartRates

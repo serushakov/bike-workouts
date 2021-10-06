@@ -17,4 +17,5 @@ object Constants {
     const val EXTRA_HEART_RATE = "$PACKAGE_NAME.heart-rate"
     const val HEART_DEFAULT_VALUE: Int = 53
     const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 2000
+    const val MINIMUM_WORKOUT_DURATION_MS = 1000 * 60 // 1 minute
 }

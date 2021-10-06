@@ -23,10 +23,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
-import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.*
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
+import io.ushakov.bike_workouts.util.rememberActiveWorkout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -186,32 +186,29 @@ class MainActivity : ComponentActivity() {
                     type = NavType.LongType
                 })) { backStackEntry ->
                 val workoutId = backStackEntry.arguments?.getLong("workoutId") ?: return@composable
+                val workoutComplete by (application as WorkoutApplication).workoutRepository.getCompleteWorkoutById(
+                    workoutId).observeAsState()
 
-                InWorkout(workoutId = workoutId)
+                InWorkout(workoutComplete)
             }
         }
     }
 
     @Composable
-    private fun rememberNavigateToUnfinishedWorkout(navController: NavController): Workout? {
-        val unfinishedWorkout by (application as WorkoutApplication).workoutRepository.unfinishedWorkout.observeAsState()
+    private fun rememberNavigateToUnfinishedWorkout(navController: NavController) {
+        val activeWorkout = rememberActiveWorkout()
 
-        LaunchedEffect(key1 = unfinishedWorkout) {
-            Log.d("DBG", unfinishedWorkout.toString())
-            if (unfinishedWorkout == null) {
-                if(navController.currentDestination?.route == "in_workout/{workoutId}") {
+        LaunchedEffect(key1 = activeWorkout) {
+            if (activeWorkout == null) {
+                if (navController.currentDestination?.route == "in_workout/{workoutId}") {
                     navController.popBackStack()
                     navController.navigate("main")
                 }
             } else {
                 navController.popBackStack()
-                navController.navigate("in_workout/${unfinishedWorkout!!.id}")
+                navController.navigate("in_workout/${activeWorkout.id}")
             }
-
-
         }
-
-        return unfinishedWorkout
     }
 
     private fun saveDeviceAddress(address: String) {

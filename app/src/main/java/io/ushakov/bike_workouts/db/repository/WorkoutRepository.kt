@@ -29,17 +29,19 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
         return@withContext workoutDao.insert(workout)
     }
 
+    suspend fun delete(workout: Workout) = withContext(Dispatchers.IO) {
+        return@withContext workoutDao.delete(workout)
+    }
+
     suspend fun getWorkoutsByUserId(userId: Long) = withContext(Dispatchers.IO) {
         return@withContext workoutDao.getWorkoutsByUserId(userId)
     }
 
     suspend fun getLastWorkout(userId: Long) = withContext(Dispatchers.IO) {
-        return@withContext workoutDao.getLastWorkoutByUserId(userId)
+        return@withContext workoutDao.getLastFinishedWorkoutByUserId(userId)
     }
 
-    suspend fun getCompleteWorkoutById(id: Long) = withContext(Dispatchers.IO) {
-        return@withContext workoutDao.getCompleteWorkoutById(id)
-    }
+    fun getCompleteWorkoutById(id: Long) = workoutDao.getCompleteWorkoutById(id)
 
     suspend fun finishWorkout(id: Long) = withContext(Dispatchers.IO) {
         val workout = workoutDao.getWorkoutById(id)

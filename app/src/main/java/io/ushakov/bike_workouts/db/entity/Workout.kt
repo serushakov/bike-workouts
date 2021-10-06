@@ -22,15 +22,15 @@ data class Workout(
     val title: String,
     val type: String,
     val startAt: Date,
-    var finishAt: Date?
-    ) {
+    var finishAt: Date?,
+) {
 
     constructor(
         @NotNull userId: Long,
         @NotNull title: String,
         @NotNull type: String,
         @NotNull startAt: Date,
-        finishAt: Date? = null
+        finishAt: Date? = null,
     ) : this(
         0, userId, title, type, startAt, finishAt
     )
@@ -69,25 +69,22 @@ class WorkoutSummary {
     var summary: Summary? = null
 }
 
-class WorkoutComplete {
+data class WorkoutComplete(
     @Embedded
-    var workout: Workout? = null
-
+    var workout: Workout? = null,
     @Relation(
         parentColumn = "id",
         entityColumn = "workoutId"
     )
-    var heartRates: List<HeartRate>? = null
-
+    var heartRates: List<HeartRate>? = null,
     @Relation(
         parentColumn = "id",
         entityColumn = "workoutId"
     )
-    var locations: List<Location>? = null
-
+    var locations: List<Location>? = null,
     @Relation(
         parentColumn = "id",
         entityColumn = "workoutId"
     )
-    var summary: Summary? = null
-}
+    var summary: Summary? = null,
+)
