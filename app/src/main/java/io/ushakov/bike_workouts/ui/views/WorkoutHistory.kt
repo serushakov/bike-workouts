@@ -52,7 +52,7 @@ fun WorkoutHistory(
                 WorkoutList(
                     workoutSummaryList = workoutList,
                     onSelected = { workoutSummary ->
-                        Log.d("DBG", "Workout Id: ${workoutSummary.workout!!.id}")
+                        navController.navigate("workout_details/${workoutSummary.workout!!.id}")
                     }
                 )
             }
