@@ -9,7 +9,7 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import io.ushakov.bike_workouts.db.dao.*
 import io.ushakov.bike_workouts.db.entity.*
-import io.ushakov.bike_workouts.utilities.DatabaseTypeConverters
+import io.ushakov.bike_workouts.util.DatabaseTypeConverters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.*
