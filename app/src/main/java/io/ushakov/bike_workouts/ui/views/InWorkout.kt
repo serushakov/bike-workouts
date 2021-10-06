@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.Summary
+import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.db.entity.WorkoutComplete
 import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.util.rememberApplication
@@ -22,17 +23,14 @@ import kotlinx.coroutines.launch
 import java.util.*
 
 @Composable
-fun InWorkout(workoutId: Long?) {
+fun InWorkout(workoutComplete: WorkoutComplete, onWorkoutStopClick: () -> Unit) {
     val application = rememberApplication()
-
-    val workoutComplete by application.workoutRepository.getCompleteWorkoutById(workoutId ?: return)
-        .observeAsState()
 
     val (
         workout,
         heartRates,
         locations,
-    ) = workoutComplete ?: return
+    ) = workoutComplete
 
     if (workout == null || heartRates == null || locations == null) return
 
@@ -42,22 +40,7 @@ fun InWorkout(workoutId: Long?) {
         Column(Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            Button(onClick = {
-                val timeDifference = workout.startAt.time - Date().time
-
-                scope.launch {
-                    if (timeDifference > Constants.MINIMUM_WORKOUT_DURATION_MS) {
-                        application.workoutRepository.finishWorkout(workout.id)
-                        application.summaryRepository.insert(Summary(
-                            workoutId = workout.id,
-                            kiloCalories = 400,
-                            distance = 200.0
-                        ))
-                    } else {
-                        application.workoutRepository.delete(workout)
-                    }
-                }
-            }) {
+            Button(onClick = onWorkoutStopClick) {
                 Text("STOP")
             }
         }

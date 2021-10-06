@@ -15,21 +15,28 @@ import androidx.activity.compose.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
+import io.ushakov.bike_workouts.db.entity.Summary
+import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.*
+import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.rememberActiveWorkout
+import io.ushakov.bike_workouts.util.rememberApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import java.util.*
 
 /*
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
@@ -69,6 +76,7 @@ class MainActivity : ComponentActivity() {
     fun View() {
         val navController = rememberNavController()
         val scope = rememberCoroutineScope()
+        val application = rememberApplication()
 
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
 
@@ -150,11 +158,7 @@ class MainActivity : ComponentActivity() {
 
         NavHost(navController = navController, startDestination = "main") {
             composable("main") {
-                Main(navController, 1) {
-                    scope.launch {
-                        (application as WorkoutApplication).workoutRepository.startWorkout(1)
-                    }
-                }
+                Main(navController, 1) { startWorkout() }
             }
             composable("workout_history") {
                 WorkoutHistory(navController, 1)
@@ -185,14 +189,43 @@ class MainActivity : ComponentActivity() {
                     type = NavType.LongType
                 })) { backStackEntry ->
                 val workoutId = backStackEntry.arguments?.getLong("workoutId")
+                val workoutComplete by application.workoutRepository.getCompleteWorkoutById(
+                    workoutId ?: return@composable)
+                    .observeAsState()
 
-                InWorkout(workoutId)
+                InWorkout(workoutComplete ?: return@composable) {
+                    stopWorkout(workoutComplete?.workout ?: return@InWorkout)
+                }
             }
         }
     }
 
+    private fun stopWorkout(workout: Workout) {
+        val application = application as WorkoutApplication
+        val timeDifference = workout.startAt.time - Date().time
+
+        lifecycleScope.launch {
+            if (timeDifference > Constants.MINIMUM_WORKOUT_DURATION_MS) {
+                application.workoutRepository.finishWorkout(workout.id)
+                application.summaryRepository.insert(Summary(
+                    workoutId = workout.id,
+                    kiloCalories = 400,
+                    distance = 200.0
+                ))
+            } else {
+                application.workoutRepository.delete(workout)
+            }
+        }
+    }
+
+    private fun startWorkout() {
+        lifecycleScope.launch {
+            (application as WorkoutApplication).workoutRepository.startWorkout(1)
+        }
+    }
+
     @Composable
-    private fun rememberNavigateToUnfinishedWorkout(navController: NavController) {
+    private fun rememberNavigateToUnfinishedWorkout(navController: NavController): Workout? {
         val activeWorkout = rememberActiveWorkout()
 
         LaunchedEffect(key1 = activeWorkout) {
@@ -206,6 +239,8 @@ class MainActivity : ComponentActivity() {
                 navController.navigate("in_workout/${activeWorkout.id}")
             }
         }
+
+        return activeWorkout
     }
 
     private fun saveDeviceAddress(address: String) {
