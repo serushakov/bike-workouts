@@ -1,6 +1,7 @@
 package io.ushakov.bike_workouts
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
@@ -14,27 +15,29 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.navigation.NavType
+import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
+import io.ushakov.bike_workouts.db.entity.Summary
+import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
-import io.ushakov.bike_workouts.ui.views.BluetoothSettings
-import io.ushakov.bike_workouts.ui.views.Main
-import io.ushakov.bike_workouts.ui.views.WorkoutDetails
-import io.ushakov.bike_workouts.ui.views.WorkoutHistory
+import io.ushakov.bike_workouts.ui.views.*
+import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
+import io.ushakov.bike_workouts.util.rememberActiveWorkout
+import io.ushakov.bike_workouts.util.rememberApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import java.util.*
 
 /*
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
@@ -42,11 +45,7 @@ TODO Setup activity calls DB and gets user and it then pass UserId here, which s
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         HeartRateDeviceManager.initialize(applicationContext)
-        //TODO Start workout service. (Temp code, remove later)
-        // Added for testing, later we decide from where it will gonna start.
-        startWorkoutService()
 
         //Initialize Broadcast receiver
         val workoutDataReceiver = WorkoutDataReceiver()
@@ -73,10 +72,14 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun View() {
         val navController = rememberNavController()
+        val application = rememberApplication()
 
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
 
         requestPermissions(bluetoothAdapter = bluetoothManager.adapter)
+
+        rememberNavigateToUnfinishedWorkout(navController)
+        rememberStartWorkoutService()
 
         val (pairedDevice, setPairedDevice) = remember {
             mutableStateOf(HeartRateDeviceManager.getInstance().getDevice())
@@ -124,7 +127,7 @@ class MainActivity : ComponentActivity() {
 
                 /*CoroutineScope(Dispatchers.IO).launch {
                     while (true) {
-                        delay(1234)
+                        delay(1234
                         val intentForDataReceiver = Intent(ACTION_BROADCAST)
                         intentForDataReceiver.putExtra(EXTRA_HEART_RATE, Random.nextInt(50..150))
                         LocalBroadcastManager.getInstance(applicationContext)
@@ -152,7 +155,7 @@ class MainActivity : ComponentActivity() {
 
         NavHost(navController = navController, startDestination = "main") {
             composable("main") {
-                Main(navController, 1)
+                Main(navController, 1) { startWorkout() }
             }
             composable("workout_history") {
                 WorkoutHistory(navController, 1)
@@ -177,6 +180,75 @@ class MainActivity : ComponentActivity() {
                 })) { backStackEntry ->
                 WorkoutDetails(navController,
                     workoutId = backStackEntry.arguments?.getLong("workoutId"))
+            }
+            composable("in_workout/{workoutId}",
+                arguments = listOf(navArgument("workoutId") {
+                    type = NavType.LongType
+                })) { backStackEntry ->
+                val workoutId = backStackEntry.arguments?.getLong("workoutId")
+                val workoutComplete by application.workoutRepository.getCompleteWorkoutById(
+                    workoutId ?: return@composable)
+                    .observeAsState()
+
+                InWorkout(workoutComplete ?: return@composable) {
+                    stopWorkout(workoutComplete?.workout ?: return@InWorkout)
+                }
+            }
+        }
+    }
+
+    private fun stopWorkout(workout: Workout) {
+        val application = application as WorkoutApplication
+        val timeDifference = workout.startAt.time - Date().time
+
+        lifecycleScope.launch {
+            if (timeDifference > Constants.MINIMUM_WORKOUT_DURATION_MS) {
+                application.workoutRepository.finishWorkout(workout.id)
+                application.summaryRepository.insert(Summary(
+                    workoutId = workout.id,
+                    kiloCalories = 400,
+                    distance = 200.0
+                ))
+            } else {
+                application.workoutRepository.delete(workout)
+            }
+        }
+    }
+
+    private fun startWorkout() {
+        lifecycleScope.launch {
+            (application as WorkoutApplication).workoutRepository.startWorkout(1)
+        }
+    }
+
+    @SuppressLint("ComposableNaming")
+    @Composable
+    private fun rememberNavigateToUnfinishedWorkout(navController: NavController) {
+        val activeWorkout = rememberActiveWorkout()
+
+        LaunchedEffect(key1 = activeWorkout) {
+            if (activeWorkout == null) {
+                if (navController.currentDestination?.route == "in_workout/{workoutId}") {
+                    navController.popBackStack()
+                    navController.navigate("main")
+                }
+            } else {
+                navController.popBackStack()
+                navController.navigate("in_workout/${activeWorkout.id}")
+            }
+        }
+    }
+
+    @SuppressLint("ComposableNaming")
+    @Composable
+    private fun rememberStartWorkoutService() {
+        val activeWorkout = rememberActiveWorkout()
+
+        LaunchedEffect(key1 = activeWorkout) {
+            if (activeWorkout == null) {
+                stopWorkoutService()
+            } else {
+                startWorkoutService()
             }
         }
     }

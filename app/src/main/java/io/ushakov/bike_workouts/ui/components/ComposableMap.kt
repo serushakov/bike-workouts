@@ -1,9 +1,9 @@
 package io.ushakov.bike_workouts.ui.components
 
 import android.os.Bundle
-import android.util.Log
-import androidx.compose.animation.Animatable
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -52,7 +52,6 @@ fun rememberMapViewWithLifecycle(): MapView {
     val context = LocalContext.current
     val darkMode = isSystemInDarkTheme()
 
-    Log.d("dark mode", darkMode.toString())
     val mapView = remember(darkMode) {
         MapView(context,
             GoogleMapOptions().mapId(if (darkMode) context.getString(R.string.dark_mode_map_id) else context.getString(

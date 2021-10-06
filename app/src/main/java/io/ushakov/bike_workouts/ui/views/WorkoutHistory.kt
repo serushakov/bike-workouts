@@ -1,6 +1,5 @@
 package io.ushakov.bike_workouts.ui.views
 
-import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -52,7 +51,7 @@ fun WorkoutHistory(
                 WorkoutList(
                     workoutSummaryList = workoutList,
                     onSelected = { workoutSummary ->
-                        Log.d("DBG", "Workout Id: ${workoutSummary.workout!!.id}")
+                        navController.navigate("workout_details/${workoutSummary.workout!!.id}")
                     }
                 )
             }

@@ -1,4 +1,4 @@
-package io.ushakov.bike_workouts.utilities
+package io.ushakov.bike_workouts.util
 
 import androidx.room.TypeConverter
 import java.util.*

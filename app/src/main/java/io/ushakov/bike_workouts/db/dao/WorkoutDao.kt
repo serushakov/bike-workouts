@@ -1,10 +1,7 @@
 package io.ushakov.bike_workouts.db.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Transaction
+import androidx.room.*
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.db.entity.WorkoutComplete
 import io.ushakov.bike_workouts.db.entity.WorkoutSummary
@@ -14,6 +11,15 @@ interface WorkoutDao {
 
     @Query("SELECT * FROM WORKOUT")
     fun getAllWorkouts(): LiveData<List<Workout>>
+
+    @Query("SELECT * FROM workout WHERE workout.id = :id")
+    suspend fun getWorkoutById(id: Long): Workout
+
+    @Query("SELECT * FROM workout WHERE workout.finishAt is null LIMIT 1")
+    fun getUnfinishedWorkout(): LiveData<Workout>
+
+    @Delete
+    fun delete(workout: Workout)
 
     //@Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId")
     //fun getUserWorkout(userId: Long): UserWorkout
@@ -36,10 +42,13 @@ interface WorkoutDao {
 
     //Used by main activity to show list of workout displaying summary of each workout
     @Transaction
-    @Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId ORDER BY id DESC LIMIT 1")
-    suspend fun getLastWorkoutByUserId(userId: Long): WorkoutSummary
+    @Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId AND finishAt is not null ORDER BY id DESC LIMIT 1")
+    suspend fun getLastFinishedWorkoutByUserId(userId: Long): WorkoutSummary
 
     @Transaction
     @Query("SELECT * FROM workout WHERE workout.id = :id")
-    suspend fun getCompleteWorkoutById(id: Long): WorkoutComplete
+    fun getCompleteWorkoutById(id: Long): LiveData<WorkoutComplete>
+
+    @Update
+    suspend fun update(workout: Workout)
 }
