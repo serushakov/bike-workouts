@@ -13,6 +13,18 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
 
     val allWorkout: LiveData<List<Workout>> = workoutDao.getAllWorkouts()
 
+    val unfinishedWorkout = workoutDao.getUnfinishedWorkout()
+
+    suspend fun startWorkout(userId: Long) = withContext(Dispatchers.IO) {
+        val workout = Workout(
+            userId = userId,
+            title = "Whatever",
+            type = "bike",
+            startAt = Date()
+        )
+        return@withContext workoutDao.insert(workout)
+    }
+
     suspend fun insert(workout: Workout) = withContext(Dispatchers.IO) {
         return@withContext workoutDao.insert(workout)
     }

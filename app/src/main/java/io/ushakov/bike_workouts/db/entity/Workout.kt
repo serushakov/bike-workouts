@@ -30,7 +30,7 @@ data class Workout(
         @NotNull title: String,
         @NotNull type: String,
         @NotNull startAt: Date,
-        finishAt: Date?
+        finishAt: Date? = null
     ) : this(
         0, userId, title, type, startAt, finishAt
     )

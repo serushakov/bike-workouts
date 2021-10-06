@@ -14,27 +14,23 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.navigation.NavType
+import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
+import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
-import io.ushakov.bike_workouts.ui.views.BluetoothSettings
-import io.ushakov.bike_workouts.ui.views.Main
-import io.ushakov.bike_workouts.ui.views.WorkoutDetails
-import io.ushakov.bike_workouts.ui.views.WorkoutHistory
+import io.ushakov.bike_workouts.ui.views.*
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 /*
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
@@ -73,10 +69,13 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun View() {
         val navController = rememberNavController()
+        val scope = rememberCoroutineScope()
 
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
 
         requestPermissions(bluetoothAdapter = bluetoothManager.adapter)
+
+        rememberNavigateToUnfinishedWorkout(navController)
 
         val (pairedDevice, setPairedDevice) = remember {
             mutableStateOf(HeartRateDeviceManager.getInstance().getDevice())
@@ -152,7 +151,11 @@ class MainActivity : ComponentActivity() {
 
         NavHost(navController = navController, startDestination = "main") {
             composable("main") {
-                Main(navController, 1)
+                Main(navController, 1) {
+                    scope.launch {
+                        (application as WorkoutApplication).workoutRepository.startWorkout(1)
+                    }
+                }
             }
             composable("workout_history") {
                 WorkoutHistory(navController, 1)
@@ -178,7 +181,37 @@ class MainActivity : ComponentActivity() {
                 WorkoutDetails(navController,
                     workoutId = backStackEntry.arguments?.getLong("workoutId"))
             }
+            composable("in_workout/{workoutId}",
+                arguments = listOf(navArgument("workoutId") {
+                    type = NavType.LongType
+                })) { backStackEntry ->
+                val workoutId = backStackEntry.arguments?.getLong("workoutId") ?: return@composable
+
+                InWorkout(workoutId = workoutId)
+            }
         }
+    }
+
+    @Composable
+    private fun rememberNavigateToUnfinishedWorkout(navController: NavController): Workout? {
+        val unfinishedWorkout by (application as WorkoutApplication).workoutRepository.unfinishedWorkout.observeAsState()
+
+        LaunchedEffect(key1 = unfinishedWorkout) {
+            Log.d("DBG", unfinishedWorkout.toString())
+            if (unfinishedWorkout == null) {
+                if(navController.currentDestination?.route == "in_workout/{workoutId}") {
+                    navController.popBackStack()
+                    navController.navigate("main")
+                }
+            } else {
+                navController.popBackStack()
+                navController.navigate("in_workout/${unfinishedWorkout!!.id}")
+            }
+
+
+        }
+
+        return unfinishedWorkout
     }
 
     private fun saveDeviceAddress(address: String) {

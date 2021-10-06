@@ -15,6 +15,9 @@ interface WorkoutDao {
     @Query("SELECT * FROM workout WHERE workout.id = :id")
     suspend fun getWorkoutById(id: Long): Workout
 
+    @Query("SELECT * FROM workout WHERE workout.finishAt is null LIMIT 1")
+    fun getUnfinishedWorkout(): LiveData<Workout>
+
     //@Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId")
     //fun getUserWorkout(userId: Long): UserWorkout
 

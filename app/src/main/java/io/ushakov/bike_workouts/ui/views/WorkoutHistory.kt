@@ -1,6 +1,5 @@
 package io.ushakov.bike_workouts.ui.views
 
-import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons

@@ -38,7 +38,7 @@ import java.util.*
 
 
 @Composable
-fun Main(navController: NavController, userId: Long) {
+fun Main(navController: NavController, userId: Long, onStartButtonClick: () -> Unit) {
     Scaffold(
         topBar = { MainAppBar(navController) }
     ) {
@@ -71,7 +71,7 @@ fun Main(navController: NavController, userId: Long) {
                     text = {
                         Text(text = "START")
                     },
-                    onClick = {}
+                    onClick = onStartButtonClick
                 )
             }
         }
