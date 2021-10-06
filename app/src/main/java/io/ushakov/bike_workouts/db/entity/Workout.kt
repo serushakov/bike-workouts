@@ -17,12 +17,12 @@ import java.util.*
 )
 data class Workout(
     @PrimaryKey(autoGenerate = true)
-    val id: Long,
+    var id: Long,
     val userId: Long,
     val title: String,
     val type: String,
     val startAt: Date,
-    val finishAt: Date?
+    var finishAt: Date?
     ) {
 
     constructor(

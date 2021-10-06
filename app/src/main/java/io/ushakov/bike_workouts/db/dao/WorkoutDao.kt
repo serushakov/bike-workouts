@@ -1,10 +1,7 @@
 package io.ushakov.bike_workouts.db.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Transaction
+import androidx.room.*
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.db.entity.WorkoutComplete
 import io.ushakov.bike_workouts.db.entity.WorkoutSummary
@@ -14,6 +11,9 @@ interface WorkoutDao {
 
     @Query("SELECT * FROM WORKOUT")
     fun getAllWorkouts(): LiveData<List<Workout>>
+
+    @Query("SELECT * FROM workout WHERE workout.id = :id")
+    suspend fun getWorkoutById(id: Long): Workout
 
     //@Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId")
     //fun getUserWorkout(userId: Long): UserWorkout
@@ -42,4 +42,7 @@ interface WorkoutDao {
     @Transaction
     @Query("SELECT * FROM workout WHERE workout.id = :id")
     suspend fun getCompleteWorkoutById(id: Long): WorkoutComplete
+
+    @Update
+    suspend fun update(workout: Workout)
 }

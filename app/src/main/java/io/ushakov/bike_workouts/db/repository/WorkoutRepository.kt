@@ -5,6 +5,7 @@ import io.ushakov.bike_workouts.db.dao.WorkoutDao
 import io.ushakov.bike_workouts.db.entity.Workout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.*
 
 class WorkoutRepository(private val workoutDao: WorkoutDao) {
 
@@ -26,5 +27,11 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
 
     suspend fun getCompleteWorkoutById(id: Long) = withContext(Dispatchers.IO) {
         return@withContext workoutDao.getCompleteWorkoutById(id)
+    }
+
+    suspend fun finishWorkout(id: Long) = withContext(Dispatchers.IO) {
+        val workout = workoutDao.getWorkoutById(id)
+        workout.finishAt = Date()
+        return@withContext workoutDao.update(workout)
     }
 }
