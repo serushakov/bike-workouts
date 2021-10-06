@@ -1,9 +1,11 @@
 package io.ushakov.bike_workouts.ui.views
 
-import android.util.Log
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.combinedClickable
+import android.os.Handler
+import android.os.Looper
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,20 +20,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.google.android.material.color.MaterialColors
+import io.ushakov.bike_workouts.db.entity.HeartRate
+import io.ushakov.bike_workouts.db.entity.Location
 import io.ushakov.bike_workouts.db.entity.WorkoutComplete
 import io.ushakov.bike_workouts.ui.components.ComposableMap
+import io.ushakov.bike_workouts.ui.components.InWorkoutInfoRow
+import io.ushakov.bike_workouts.ui.components.Info
 import io.ushakov.bike_workouts.ui.theme.Typography
+import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
 import kotlinx.coroutines.delay
+import java.util.*
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -65,25 +67,22 @@ fun InWorkout(workoutComplete: WorkoutComplete, onWorkoutStopClick: () -> Unit) 
                     .padding(16.dp)
                     .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally) {
-                    InfoRow(
-                        Row(text = "25.0", title = "kmh"),
-                        Row(text = "120", title = "bpm"),
-                        Row(text = "0.10.34", title = "time"),
-                    )
+                    TopRow(lastLocation = locations.lastOrNull(),
+                        lastHeartRate = heartRates.lastOrNull(),
+                        startTime = workout.startAt)
                     Spacer(Modifier.height(16.dp))
                     Divider()
 
                     AnimatedContent(targetState = isPaused) { state ->
                         if (state) {
-                            InfoRow(
-                                Row(text = "200", title = "Kilocalories"),
-                                Row(text = "4.3", title = "Kilometres"),
-                                Row(text = "13", title = "Elevation"),
+                            InWorkoutInfoRow(
+                                Info(text = "200", title = "Kilocalories"),
+                                Info(text = "4.3", title = "Kilometres"),
+                                Info(text = "13", title = "Elevation"),
                                 modifier = Modifier.padding(top = 16.dp)
                             )
                         } else {
-                            BigDistance(4.3)
-                        }
+                            BigDistance(4.3) }
                     }
 
                     Spacer(Modifier.height(80.dp))
@@ -128,25 +127,45 @@ fun InWorkout(workoutComplete: WorkoutComplete, onWorkoutStopClick: () -> Unit) 
     }
 }
 
-class Row(
-    val title: String,
-    val text: String,
-)
 
 @Composable
-fun InfoRow(vararg rows: Row, modifier: Modifier = Modifier) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth()
-    ) {
-        rows.map {
-            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(it.text, style = Typography.h4)
-                Spacer(Modifier.height(4.dp))
-                SmallTitle(it.title)
+fun TopRow(lastLocation: Location?, lastHeartRate: HeartRate?, startTime: Date) {
+    val speed = if (lastLocation == null) "--.-" else String.format(".1f", lastLocation.speed)
+    val heartRate = lastHeartRate?.heartRate?.toString() ?: "--"
+
+    fun calculateTime(): String {
+        val diff = getDifferenceBetweenDates(startTime, Date())
+
+        return "${diff.hours}:${
+            diff.minutes.toString().padStart(2, '0')
+        }:${diff.seconds.toString().padStart(2, '0')}"
+    }
+
+    var time by remember { mutableStateOf(calculateTime()) }
+
+    DisposableEffect(startTime) {
+        val handler = Handler(Looper.getMainLooper())
+
+        val runnable = object : Runnable {
+            override fun run() {
+                time = calculateTime()
+                handler.postDelayed(this, 1000)
             }
         }
+
+
+        handler.postDelayed(runnable, 1000)
+
+        onDispose {
+            handler.removeCallbacks(runnable)
+        }
     }
+
+    InWorkoutInfoRow(
+        Info(text = speed, title = "kmh"),
+        Info(text = heartRate, title = "bpm"),
+        Info(text = time, title = "time"),
+    )
 }
 
 @Composable
