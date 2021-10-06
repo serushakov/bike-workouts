@@ -1,6 +1,7 @@
 package io.ushakov.bike_workouts
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
@@ -44,11 +45,7 @@ TODO Setup activity calls DB and gets user and it then pass UserId here, which s
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         HeartRateDeviceManager.initialize(applicationContext)
-        //TODO Start workout service. (Temp code, remove later)
-        // Added for testing, later we decide from where it will gonna start.
-        startWorkoutService()
 
         //Initialize Broadcast receiver
         val workoutDataReceiver = WorkoutDataReceiver()
@@ -75,7 +72,6 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun View() {
         val navController = rememberNavController()
-        val scope = rememberCoroutineScope()
         val application = rememberApplication()
 
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -83,6 +79,7 @@ class MainActivity : ComponentActivity() {
         requestPermissions(bluetoothAdapter = bluetoothManager.adapter)
 
         rememberNavigateToUnfinishedWorkout(navController)
+        rememberStartWorkoutService()
 
         val (pairedDevice, setPairedDevice) = remember {
             mutableStateOf(HeartRateDeviceManager.getInstance().getDevice())
@@ -224,8 +221,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @SuppressLint("ComposableNaming")
     @Composable
-    private fun rememberNavigateToUnfinishedWorkout(navController: NavController): Workout? {
+    private fun rememberNavigateToUnfinishedWorkout(navController: NavController) {
         val activeWorkout = rememberActiveWorkout()
 
         LaunchedEffect(key1 = activeWorkout) {
@@ -239,8 +237,20 @@ class MainActivity : ComponentActivity() {
                 navController.navigate("in_workout/${activeWorkout.id}")
             }
         }
+    }
 
-        return activeWorkout
+    @SuppressLint("ComposableNaming")
+    @Composable
+    private fun rememberStartWorkoutService() {
+        val activeWorkout = rememberActiveWorkout()
+
+        LaunchedEffect(key1 = activeWorkout) {
+            if (activeWorkout == null) {
+                stopWorkoutService()
+            } else {
+                startWorkoutService()
+            }
+        }
     }
 
     private fun saveDeviceAddress(address: String) {
