@@ -157,7 +157,6 @@ fun rememberUserLocation(): LatLng? {
     val fusedLocationProviderClient = remember {
         LocationServices.getFusedLocationProviderClient(context)
     }
-
     var userLocation by remember { mutableStateOf<LatLng?>(null) }
 
 
