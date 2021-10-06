@@ -7,6 +7,8 @@ import androidx.compose.material.Button
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,20 +17,25 @@ import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.WorkoutComplete
 import io.ushakov.bike_workouts.util.Constants
+import io.ushakov.bike_workouts.util.rememberApplication
 import kotlinx.coroutines.launch
 import java.util.*
 
 @Composable
-fun InWorkout(workoutComplete: WorkoutComplete?) {
+fun InWorkout(workoutId: Long?) {
+    val application = rememberApplication()
+
+    val workoutComplete by application.workoutRepository.getCompleteWorkoutById(workoutId ?: return)
+        .observeAsState()
+
     val (
         workout,
         heartRates,
-        locations
+        locations,
     ) = workoutComplete ?: return
 
-    if(workout == null || heartRates == null || locations == null) return
+    if (workout == null || heartRates == null || locations == null) return
 
-    val application = LocalContext.current.applicationContext as WorkoutApplication
     val scope = rememberCoroutineScope()
 
     Surface {
@@ -39,7 +46,7 @@ fun InWorkout(workoutComplete: WorkoutComplete?) {
                 val timeDifference = workout.startAt.time - Date().time
 
                 scope.launch {
-                    if(timeDifference > Constants.MINIMUM_WORKOUT_DURATION_MS) {
+                    if (timeDifference > Constants.MINIMUM_WORKOUT_DURATION_MS) {
                         application.workoutRepository.finishWorkout(workout.id)
                         application.summaryRepository.insert(Summary(
                             workoutId = workout.id,

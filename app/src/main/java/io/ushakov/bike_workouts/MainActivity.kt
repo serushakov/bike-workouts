@@ -15,7 +15,6 @@ import androidx.activity.compose.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.*
@@ -123,7 +122,7 @@ class MainActivity : ComponentActivity() {
 
                 /*CoroutineScope(Dispatchers.IO).launch {
                     while (true) {
-                        delay(1234)
+                        delay(1234
                         val intentForDataReceiver = Intent(ACTION_BROADCAST)
                         intentForDataReceiver.putExtra(EXTRA_HEART_RATE, Random.nextInt(50..150))
                         LocalBroadcastManager.getInstance(applicationContext)
@@ -185,11 +184,9 @@ class MainActivity : ComponentActivity() {
                 arguments = listOf(navArgument("workoutId") {
                     type = NavType.LongType
                 })) { backStackEntry ->
-                val workoutId = backStackEntry.arguments?.getLong("workoutId") ?: return@composable
-                val workoutComplete by (application as WorkoutApplication).workoutRepository.getCompleteWorkoutById(
-                    workoutId).observeAsState()
+                val workoutId = backStackEntry.arguments?.getLong("workoutId")
 
-                InWorkout(workoutComplete)
+                InWorkout(workoutId)
             }
         }
     }
