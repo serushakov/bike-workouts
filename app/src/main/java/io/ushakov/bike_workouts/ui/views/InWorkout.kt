@@ -2,6 +2,7 @@ package io.ushakov.bike_workouts.ui.views
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
@@ -79,12 +80,14 @@ fun InWorkout(workoutComplete: WorkoutComplete, onWorkoutStopClick: () -> Unit) 
                                 Info(text = "200", title = "Kilocalories"),
                                 Info(text = "4.3", title = "Kilometres"),
                                 Info(text = "13", title = "Elevation"),
-                                modifier = Modifier.padding(top = 16.dp)
+                                modifier = Modifier.padding(top = 16.dp, bottom = 32.dp)
                             )
                         } else {
-                            BigDistance(4.3) }
+                            BigDistance(4.3)
+                        }
                     }
 
+                    // Holds space for buttons
                     Spacer(Modifier.height(80.dp))
                 }
             }
@@ -108,17 +111,17 @@ fun InWorkout(workoutComplete: WorkoutComplete, onWorkoutStopClick: () -> Unit) 
                 .padding(16.dp)) {
 
                 StopPlayButtons(
-                    onStopClick = {},
-                    onStopLongClick = onWorkoutStopClick,
+                    onStopClick = onWorkoutStopClick,
                     onPlayClick = { isPaused = false },
                     isPaused,
                     Modifier.alpha(if (hideStopButton) 0f else 1f)
                 )
 
-                PauseButton(modifier = Modifier
-                    .alpha(if (hideStopButton) 1f else 0f)
-                    .align(Alignment.BottomCenter)) {
-                    isPaused = !isPaused
+                if (hideStopButton) {
+                    PauseButton(modifier = Modifier
+                        .align(Alignment.BottomCenter)) {
+                        isPaused = !isPaused
+                    }
                 }
 
             }
@@ -152,7 +155,6 @@ fun TopRow(lastLocation: Location?, lastHeartRate: HeartRate?, startTime: Date) 
                 handler.postDelayed(this, 1000)
             }
         }
-
 
         handler.postDelayed(runnable, 1000)
 
@@ -207,7 +209,6 @@ fun PauseButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
 @Composable
 fun StopPlayButtons(
     onStopClick: () -> Unit,
-    onStopLongClick: () -> Unit,
     onPlayClick: () -> Unit,
     show: Boolean,
     modifier: Modifier = Modifier,
@@ -224,16 +225,16 @@ fun StopPlayButtons(
             modifier
                 .size(80.dp)
                 .offset(x = (offset.x * -1).dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(onLongPress = { onStopLongClick() })
-                }
                 .align(Alignment.Center),
             backgroundColor = Color.Black,
-            contentColor = MaterialTheme.colors.contentColorFor(Color.Black),
-            elevation = FloatingActionButtonDefaults.elevation(8.dp)
         ) {
-            Icon(Icons.Default.Stop, "Stop", modifier = Modifier.size(42.dp))
+            Icon(Icons.Default.Stop,
+                "Stop",
+                modifier = Modifier.size(42.dp),
+                tint = Color.White)
         }
+
+
         FloatingActionButton(
             onPlayClick,
             Modifier
