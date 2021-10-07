@@ -31,6 +31,7 @@ import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.*
 import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
+import io.ushakov.bike_workouts.util.Constants.SAVED_DEVICE_SHARED_PREFERENCES_KEY
 import io.ushakov.bike_workouts.util.rememberActiveWorkout
 import io.ushakov.bike_workouts.util.rememberApplication
 import kotlinx.coroutines.CoroutineScope
@@ -47,12 +48,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         HeartRateDeviceManager.initialize(applicationContext)
 
+        val savedDeviceAddress = getSavedDeviceAddress()
+        if (savedDeviceAddress != null) {
+            HeartRateDeviceManager.getInstance().setupDevice(savedDeviceAddress) {}
+        }
+
+
         //Initialize Broadcast receiver
         val workoutDataReceiver = WorkoutDataReceiver()
         workoutDataReceiver.let {
             LocalBroadcastManager.getInstance(this)
                 .registerReceiver(it, IntentFilter(ACTION_BROADCAST))
         }
+
+
 
         setContent {
             BikeWorkoutsTheme {
@@ -81,41 +90,14 @@ class MainActivity : ComponentActivity() {
         rememberNavigateToUnfinishedWorkout(navController)
         rememberStartWorkoutService()
 
-        val (pairedDevice, setPairedDevice) = remember {
-            mutableStateOf(HeartRateDeviceManager.getInstance().getDevice())
+        val pairedDevice by HeartRateDeviceManager.getInstance().device.observeAsState()
+
+        LaunchedEffect(pairedDevice) {
+            saveDeviceAddress(pairedDevice?.macAddress ?: return@LaunchedEffect)
         }
 
-        val (pairingDeviceAddress, setPairingDeviceAddress) = remember {
-            val sharedPreferences: SharedPreferences =
-                applicationContext.getSharedPreferences("shared", MODE_PRIVATE)
-
-            val savedDeviceAddress = sharedPreferences.getString("device_address", null)
-
-            mutableStateOf(savedDeviceAddress)
-        }
-
-        val (isPairing, setIsPairing) = remember {
-            mutableStateOf(false)
-        }
-
-        DisposableEffect(pairingDeviceAddress) {
-            if (pairingDeviceAddress == null) return@DisposableEffect onDispose { }
-
-            val disposable =
-                HeartRateDeviceManager
-                    .getInstance()
-                    .setupDevice(pairingDeviceAddress, {
-                        setIsPairing(false)
-                        setPairedDevice(it)
-                        saveDeviceAddress(pairingDeviceAddress)
-                    }) {
-                        Log.d("Connection error", it.localizedMessage?.toString() ?: "")
-                    }
-
-            onDispose {
-                disposable.dispose()
-            }
-        }
+        val isPairing by HeartRateDeviceManager.getInstance().isPairing.observeAsState()
+        val isDeviceConnected by HeartRateDeviceManager.getInstance().isConnected.observeAsState()
 
         DisposableEffect(pairedDevice) {
             if (pairedDevice == null) {
@@ -155,7 +137,7 @@ class MainActivity : ComponentActivity() {
 
         NavHost(navController = navController, startDestination = "main") {
             composable("main") {
-                Main(navController, 1) { startWorkout() }
+                Main(navController, 1, isDeviceConnected ?: false) { startWorkout() }
             }
             composable("workout_history") {
                 WorkoutHistory(navController, 1)
@@ -163,15 +145,14 @@ class MainActivity : ComponentActivity() {
             composable("bluetooth_settings") {
                 BluetoothSettings(
                     navController,
-                    isPairing = isPairing,
-                    pairingDeviceAddress = pairingDeviceAddress,
-                    pairedDevice = pairedDevice,
+                    isPairing = isPairing ?: false,
+                    device = pairedDevice,
                     onDevicePair = { address ->
-                        setIsPairing(true)
-                        setPairingDeviceAddress(address)
+                        HeartRateDeviceManager.getInstance().setupDevice(address) {}
                     }
                 ) {
-
+                    HeartRateDeviceManager.getInstance().forgetDevice()
+                    forgetSavedDevice()
                 }
             }
             composable("workout_details/{workoutId}",
@@ -257,7 +238,21 @@ class MainActivity : ComponentActivity() {
         val sharedPreferences: SharedPreferences =
             applicationContext.getSharedPreferences("shared", MODE_PRIVATE)
         val editor = sharedPreferences.edit()
-        editor.putString("device_address", address)
+        editor.putString(SAVED_DEVICE_SHARED_PREFERENCES_KEY, address)
+        editor.apply()
+    }
+
+    private fun getSavedDeviceAddress(): String? {
+        val sharedPreferences: SharedPreferences =
+            applicationContext.getSharedPreferences("shared", MODE_PRIVATE)
+        return sharedPreferences.getString(SAVED_DEVICE_SHARED_PREFERENCES_KEY, null)
+    }
+
+    private fun forgetSavedDevice() {
+        val sharedPreferences: SharedPreferences =
+            applicationContext.getSharedPreferences("shared", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString(SAVED_DEVICE_SHARED_PREFERENCES_KEY, null)
         editor.apply()
     }
 
