@@ -99,42 +99,6 @@ class MainActivity : ComponentActivity() {
         val isPairing by HeartRateDeviceManager.getInstance().isPairing.observeAsState()
         val isDeviceConnected by HeartRateDeviceManager.getInstance().isConnected.observeAsState()
 
-        DisposableEffect(pairedDevice) {
-            if (pairedDevice == null) {
-                HeartRateDeviceManager.getInstance().forgetDevice()
-
-                //TODO Dummy Heart rate reading
-                // Remove it later.
-                Log.d("DBG", "Starting Dummy Heart rate reading....")
-
-                /*CoroutineScope(Dispatchers.IO).launch {
-                    while (true) {
-                        delay(1234
-                        val intentForDataReceiver = Intent(ACTION_BROADCAST)
-                        intentForDataReceiver.putExtra(EXTRA_HEART_RATE, Random.nextInt(50..150))
-                        LocalBroadcastManager.getInstance(applicationContext)
-                            .sendBroadcast(intentForDataReceiver)
-                    }
-                }*/
-
-                return@DisposableEffect onDispose { }
-            }
-
-            val disposable = HeartRateDeviceManager.getInstance().subscribe {
-                //TODO Forward this value to BroadCast receiver
-                // Notify anyone listening for broadcasts about the Heart Rate
-
-                /*val intentForDataReceiver = Intent(ACTION_BROADCAST)
-                intentForDataReceiver.putExtra(EXTRA_HEART_RATE, it)
-                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intentForDataReceiver)*/
-
-                Log.d("HEARTRATE", it.toString())
-            }
-            onDispose {
-                disposable.dispose()
-            }
-        }
-
         NavHost(navController = navController, startDestination = "main") {
             composable("main") {
                 Main(navController, 1, isDeviceConnected ?: false) { startWorkout() }
