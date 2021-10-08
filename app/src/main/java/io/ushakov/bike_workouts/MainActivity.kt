@@ -23,6 +23,7 @@ import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
 import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.Workout
@@ -32,13 +33,14 @@ import io.ushakov.bike_workouts.ui.views.in_workout.InWorkout
 import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.SAVED_DEVICE_SHARED_PREFERENCES_KEY
+import io.ushakov.bike_workouts.util.Constants.EXTRA_HEART_RATE
+import io.ushakov.bike_workouts.util.Constants.MINIMUM_WORKOUT_DURATION_MS
 import io.ushakov.bike_workouts.util.rememberActiveWorkout
 import io.ushakov.bike_workouts.util.rememberApplication
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.*
+import kotlin.random.Random     //DO NOT REMOVE UNTIL APP IS READY
+import kotlin.random.nextInt    //DO NOT REMOVE UNTIL APP IS READY
 
 /*
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
@@ -60,8 +62,6 @@ class MainActivity : ComponentActivity() {
             LocalBroadcastManager.getInstance(this)
                 .registerReceiver(it, IntentFilter(ACTION_BROADCAST))
         }
-
-
 
         setContent {
             BikeWorkoutsTheme {
@@ -91,6 +91,19 @@ class MainActivity : ComponentActivity() {
         StartWorkoutService()
 
         val pairedDevice by HeartRateDeviceManager.getInstance().device.observeAsState()
+
+        //Launch Dummy HR readings
+        LaunchedEffect("Dummy_HR_Readings") {
+            CoroutineScope(Dispatchers.IO).launch {
+                while (true) {
+                    delay(1234)
+                    val intentForDataReceiver = Intent(ACTION_BROADCAST)
+                    intentForDataReceiver.putExtra(EXTRA_HEART_RATE, Random.nextInt(50..150))
+                    LocalBroadcastManager.getInstance(applicationContext)
+                        .sendBroadcast(intentForDataReceiver)
+                }
+            }
+        }
 
         LaunchedEffect(pairedDevice) {
             saveDeviceAddress(pairedDevice?.macAddress ?: return@LaunchedEffect)
@@ -144,9 +157,22 @@ class MainActivity : ComponentActivity() {
 
     private fun stopWorkout(workout: Workout) {
         val application = application as WorkoutApplication
-        val timeDifference = workout.startAt.time - Date().time
+        //val timeDifference = workout.startAt.time - Date().time
 
-        lifecycleScope.launch {
+        val timeDifference = Date().time - WorkoutDataProcessor.currentWorkoutStartTime.time
+        Log.d("DBG", "timeDifference $timeDifference")
+
+        if (timeDifference > MINIMUM_WORKOUT_DURATION_MS) {
+            Log.d("DBG", "Stopping workout")
+
+            WorkoutDataProcessor.stopWorkout()
+        } else {
+            Log.d("DBG", "Deleting workout")
+
+            WorkoutDataProcessor.deleteCurrentWorkout()
+        }
+
+        /*lifecycleScope.launch {
             if (timeDifference > Constants.MINIMUM_WORKOUT_DURATION_MS) {
                 application.workoutRepository.finishWorkout(workout.id)
                 application.summaryRepository.insert(Summary(
@@ -157,13 +183,25 @@ class MainActivity : ComponentActivity() {
             } else {
                 application.workoutRepository.delete(workout)
             }
-        }
+        }*/
+        Log.d("DBG", "Stop workout. Line 221 MainActivity")
+
+        stopWorkoutService()
     }
 
     private fun startWorkout() {
-        lifecycleScope.launch {
+        //TODO Call WorkoutDataProcessor.create(UserId, Title, Type)
+        //TODO("Create a workout in DB and return Id")
+        // return should be a job so that we can use await()
+        // set WorkoutDataProcessor.currentWorkoutId
+        Log.d("DBG", "Start workout. Line 228 MainActivity")
+        /*lifecycleScope.launch {
             (application as WorkoutApplication).workoutRepository.startWorkout(1)
-        }
+        }*/
+        //TODO remove this code, Service starts automatically at line 265, 263 in rememberStartWorkoutService()
+        val tempUserId: Long = 1
+        WorkoutDataProcessor.createWorkout(tempUserId, "workout title", "Workout Type")
+        startWorkoutService()
     }
 
     @Composable
@@ -189,9 +227,13 @@ class MainActivity : ComponentActivity() {
 
         LaunchedEffect(key1 = activeWorkout) {
             if (activeWorkout == null) {
-                stopWorkoutService()
+                Log.d("DBG", "Something stops activity here")
+
+                //stopWorkoutService()
             } else {
-                startWorkoutService()
+                Log.d("DBG", "Something starts activity here")
+
+                //startWorkoutService()
             }
         }
     }

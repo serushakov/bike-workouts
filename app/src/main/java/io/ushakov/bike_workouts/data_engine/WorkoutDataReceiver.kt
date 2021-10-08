@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.util.Log
+import androidx.activity.ComponentActivity
+import io.ushakov.bike_workouts.MainActivity
 import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.util.Constants.EXTRA_HEART_RATE
 import io.ushakov.bike_workouts.util.Constants.HEART_DEFAULT_VALUE
@@ -13,6 +15,7 @@ class WorkoutDataReceiver : BroadcastReceiver() {
 
     private var previousHeartRate: Int = HEART_DEFAULT_VALUE
     private var previousLocation: Location? = null
+    private val workoutDataProcessor = WorkoutDataProcessor()
 
     override fun onReceive(context: Context, intent: Intent) {
         //Log.d("DBG", "Broadcast received")
@@ -55,7 +58,7 @@ class WorkoutDataReceiver : BroadcastReceiver() {
 
     private fun writeValues() {
         if (previousHeartRate != HEART_DEFAULT_VALUE && previousLocation != null) {
-            Log.d("DBG", "Heart BPM: $previousHeartRate, Location: $previousLocation")
+            workoutDataProcessor.processData(previousHeartRate, previousLocation!!)
             resetPreviousValues()
         }
     }

@@ -5,6 +5,7 @@ import androidx.room.*
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.db.entity.WorkoutComplete
 import io.ushakov.bike_workouts.db.entity.WorkoutSummary
+import java.util.*
 
 @Dao
 interface WorkoutDao {
@@ -20,6 +21,9 @@ interface WorkoutDao {
 
     @Delete
     fun delete(workout: Workout)
+
+    @Query("DELETE FROM workout WHERE id = :workoutId")
+    suspend fun deleteById(workoutId: Long): Int
 
     //@Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId")
     //fun getUserWorkout(userId: Long): UserWorkout
@@ -50,5 +54,8 @@ interface WorkoutDao {
     fun getCompleteWorkoutById(id: Long): LiveData<WorkoutComplete>
 
     @Update
-    suspend fun update(workout: Workout)
+    suspend fun update(workout: Workout): Int
+
+    @Query("UPDATE WORKOUT SET finishAt = :finishTime WHERE id = :workoutId")
+    suspend fun update(workoutId: Long, finishTime: Date): Int
 }
