@@ -1,7 +1,6 @@
 package io.ushakov.bike_workouts
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
@@ -29,6 +28,7 @@ import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.*
+import io.ushakov.bike_workouts.ui.views.in_workout.InWorkout
 import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.SAVED_DEVICE_SHARED_PREFERENCES_KEY
@@ -87,8 +87,8 @@ class MainActivity : ComponentActivity() {
 
         requestPermissions(bluetoothAdapter = bluetoothManager.adapter)
 
-        rememberNavigateToUnfinishedWorkout(navController)
-        rememberStartWorkoutService()
+        NavigateToUnfinishedWorkout(navController)
+        StartWorkoutService()
 
         val pairedDevice by HeartRateDeviceManager.getInstance().device.observeAsState()
 
@@ -166,9 +166,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @SuppressLint("ComposableNaming")
     @Composable
-    private fun rememberNavigateToUnfinishedWorkout(navController: NavController) {
+    private fun NavigateToUnfinishedWorkout(navController: NavController) {
         val activeWorkout = rememberActiveWorkout()
 
         LaunchedEffect(key1 = activeWorkout) {
@@ -184,9 +183,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @SuppressLint("ComposableNaming")
     @Composable
-    private fun rememberStartWorkoutService() {
+    private fun StartWorkoutService() {
         val activeWorkout = rememberActiveWorkout()
 
         LaunchedEffect(key1 = activeWorkout) {
