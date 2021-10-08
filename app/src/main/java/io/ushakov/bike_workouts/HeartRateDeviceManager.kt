@@ -1,7 +1,10 @@
 package io.ushakov.bike_workouts
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
@@ -12,17 +15,14 @@ import java.util.concurrent.TimeUnit
 
 class HeartRateDeviceManager(context: Context) {
     private var bleClient = RxBleClient.create(context)
-    private var device: RxBleDevice? = null
     private var connection: RxBleConnection? = null
     private val callbacks: MutableSet<(value: Int) -> Unit> = mutableSetOf()
     private var notificationsDisposable: Disposable? = null
     private var connectionDisposable: Disposable? = null
 
-    class DeviceNotInitializedError : Throwable() {
-        override fun getLocalizedMessage(): String {
-            return "Device has not been initialized"
-        }
-    }
+    val isPairing by lazy { MutableLiveData(false) }
+    val device by lazy { MutableLiveData<RxBleDevice?>(null) }
+    val isConnected by lazy { MutableLiveData(false) }
 
     companion object {
         private var instance: HeartRateDeviceManager? = null
@@ -34,19 +34,6 @@ class HeartRateDeviceManager(context: Context) {
         fun getInstance(): HeartRateDeviceManager {
             return instance!!
         }
-    }
-
-    private fun setupNotifications() {
-        notificationsDisposable =
-            connection!!.setupNotification(Constants.HEART_RATE_CHARACTERISTIC_UUID)
-                .flatMap { it }
-                .subscribe({ value ->
-                    val decodedHeartRate = decodeHeartRate(value)
-
-                    sendUpdates(decodedHeartRate)
-                }) { throwable ->
-                    Log.d("HeartRateDeviceManager", throwable.localizedMessage.toString())
-                }
     }
 
     private fun decodeHeartRate(data: ByteArray): Int {
@@ -70,51 +57,68 @@ class HeartRateDeviceManager(context: Context) {
         for (callback in callbacks) callback(heartRate)
     }
 
+    private fun handleDeviceConnectionChange(state: RxBleConnection.RxBleConnectionState) {
+        when (state) {
+            RxBleConnection.RxBleConnectionState.CONNECTING -> isPairing.value = true
+            RxBleConnection.RxBleConnectionState.CONNECTED -> {
+                isPairing.value = false
+                isConnected.value = true
+            }
+            RxBleConnection.RxBleConnectionState.DISCONNECTED -> isConnected.value = false
+            else -> Unit
+        }
+    }
+
     fun setupDevice(
         address: String,
-        success: (RxBleDevice) -> Unit,
         error: (Throwable) -> Unit,
     ): Disposable {
-        device = bleClient.getBleDevice(address)
+        val device = bleClient.getBleDevice(address)
 
-        return device!!
+        connectionDisposable =
+            device.observeConnectionStateChanges()?.subscribe {
+                Handler(Looper.getMainLooper()).post {
+                    handleDeviceConnectionChange(it)
+                }
+            }
+
+        return device
             .establishConnection(false, Timeout(5, TimeUnit.SECONDS))
-            .subscribe({
-                success(device!!)
-                connection = it
+            .flatMap {
+                Handler(Looper.getMainLooper()).post {
+                    this.device.value = device
+                }
+                it.setupNotification(Constants.HEART_RATE_CHARACTERISTIC_UUID)
+            }
+            .flatMap { it }
+            .subscribe({ value ->
+                val decodedHeartRate = decodeHeartRate(value)
+
+                sendUpdates(decodedHeartRate)
             }, error)
     }
 
-    fun getDevice() = device
-
-    fun hasDevice() = device != null
-
     fun forgetDevice() {
         notificationsDisposable?.dispose()
-        device = null
+        device.value = null
     }
 
     fun subscribe(callback: (value: Int) -> Unit): Disposable {
-        if (!hasDevice()) throw DeviceNotInitializedError()
-
-        if (notificationsDisposable == null) {
-            setupNotifications()
-        }
-
         callbacks += callback
 
         return object : Disposable {
             override fun dispose() {
                 callbacks.remove(callback)
-
-                if (callbacks.size == 0 && notificationsDisposable != null) {
-                    notificationsDisposable!!.dispose()
-                }
             }
 
             override fun isDisposed(): Boolean {
                 return callbacks.contains(callback)
             }
         }
+    }
+
+    fun cleanup() {
+        notificationsDisposable?.dispose()
+        connectionDisposable?.dispose()
     }
 }

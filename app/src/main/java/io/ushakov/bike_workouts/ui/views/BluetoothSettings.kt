@@ -29,23 +29,22 @@ import io.ushakov.bike_workouts.ui.components.BleListItem
 import io.ushakov.bike_workouts.ui.components.ButtonStatus
 import io.ushakov.bike_workouts.ui.components.SectionTitle
 import io.ushakov.bike_workouts.ui.components.ThemedTopAppBar
-import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.ui.theme.Typography
+import io.ushakov.bike_workouts.util.Constants
 import java.util.*
 
 @Composable
 fun BluetoothSettings(
     navController: NavController,
     isPairing: Boolean,
-    pairingDeviceAddress: String?,
-    pairedDevice: RxBleDevice?,
+    device: RxBleDevice?,
     onDevicePair: (deviceAddress: String) -> Unit,
-    onUnpairClick: () -> Unit
+    onUnpairClick: () -> Unit,
 ) {
     Scaffold(
         topBar = { BluetoothSettingsAppBar(navController) }
     ) {
-        View(onDevicePair, isPairing, pairingDeviceAddress, pairedDevice, onUnpairClick)
+        View(onDevicePair, isPairing, device, onUnpairClick)
     }
 }
 
@@ -53,23 +52,22 @@ fun BluetoothSettings(
 internal fun View(
     onDevicePair: (deviceAddress: String) -> Unit,
     isPairing: Boolean,
-    pairingDeviceAddress: String?,
-    pairedDevice: RxBleDevice?,
-    onUnpairClick: () -> Unit
+    device: RxBleDevice?,
+    onUnpairClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(16.dp)
     ) {
 
-        if (pairedDevice != null) {
+        if (device != null && !isPairing) {
             Row {
-                ConnectedDevice(device = pairedDevice, onUnpairClick = onUnpairClick)
+                ConnectedDevice(device = device, onUnpairClick = onUnpairClick)
             }
         } else {
             DeviceList(
                 onDevicePair,
                 isPairing,
-                pairingDeviceAddress,
+                device?.macAddress,
             )
         }
     }
@@ -96,7 +94,7 @@ fun ConnectedDevice(
                     Column {
                         Text(device?.name ?: "DeviceName", style = Typography.h6)
                         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
-                            Text((device?.macAddress ?: "Address").capitalize(),
+                            Text((device?.macAddress ?: "Address").uppercase(),
                                 style = Typography.caption)
                         }
                     }
@@ -133,26 +131,24 @@ fun DeviceList(
 ) {
     val deviceList = rememberDeviceList()
 
-    val workoutsList =
-        Column {
-            SectionTitle(text = stringResource(R.string.bluetooth_device_search_list_title))
+    Column {
+        SectionTitle(text = stringResource(R.string.bluetooth_device_search_list_title))
 
-            LazyColumn(modifier = modifier) {
-                items(items = deviceList) { item ->
-                    BleListItem(
-                        deviceName = item.bleDevice.name ?: "No name",
-                        when {
-                            item.bleDevice.macAddress == pairingDeviceAddress && isPairing -> ButtonStatus.PAIRING
-                            isPairing -> ButtonStatus.DISABLED
-                            else -> ButtonStatus.DEFAULT
-                        }) {
+        LazyColumn(modifier = modifier) {
+            items(items = deviceList) { item ->
+                BleListItem(
+                    deviceName = item.bleDevice.name ?: "No name",
+                    when {
+                        item.bleDevice.macAddress == pairingDeviceAddress && isPairing -> ButtonStatus.PAIRING
+                        isPairing -> ButtonStatus.DISABLED
+                        else -> ButtonStatus.DEFAULT
+                    }) {
 
-                        onDevicePair(item.bleDevice.macAddress)
-                    }
+                    onDevicePair(item.bleDevice.macAddress)
                 }
             }
         }
-
+    }
 }
 
 
@@ -205,7 +201,7 @@ fun rememberDeviceList(): List<ScanResult> {
 
             }
             ) { throwable ->
-                Log.d("error", throwable.localizedMessage)
+                Log.d("error", throwable?.localizedMessage.toString())
             }
 
 
