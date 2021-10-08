@@ -3,9 +3,10 @@ package io.ushakov.bike_workouts.util
 import java.util.*
 
 object Constants {
-    val HEART_RATE_CHARACTERISTIC_UUID = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb")
-    val HEART_RATE_SERVICE_UUID = UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb")
+    val HEART_RATE_CHARACTERISTIC_UUID: UUID = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb")
+    val HEART_RATE_SERVICE_UUID: UUID = UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb")
     const val ACTION_LOCATION_PROCESS_UPDATES = "io.ushakov.bike_workouts.action" + ".LOCATION_PROCESS_UPDATES"
+    const val SAVED_DEVICE_SHARED_PREFERENCES_KEY = "device_address"
     //TODO some reason able channel id
     const val CHANNEL_ID = "LOCATION_SERVICE_CHANNEL_ID"
     const val CHANNEL_NAME = "LOCATION_SERVICE_CHANNEL_NAME"

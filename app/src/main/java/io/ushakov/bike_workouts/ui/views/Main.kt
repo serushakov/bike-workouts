@@ -38,9 +38,14 @@ import java.util.*
 
 
 @Composable
-fun Main(navController: NavController, userId: Long, onStartButtonClick: () -> Unit) {
+fun Main(
+    navController: NavController,
+    userId: Long,
+    deviceConnected: Boolean,
+    onStartButtonClick: () -> Unit,
+) {
     Scaffold(
-        topBar = { MainAppBar(navController) }
+        topBar = { MainAppBar(navController, deviceConnected) }
     ) {
         Box(Modifier.fillMaxWidth()) {
             MapView()
@@ -79,7 +84,7 @@ fun Main(navController: NavController, userId: Long, onStartButtonClick: () -> U
 }
 
 @Composable
-fun MainAppBar(navController: NavController) {
+fun MainAppBar(navController: NavController, deviceConnected: Boolean) {
     ThemedTopAppBar(
         navigationIcon = {
             IconButton(onClick = { }) {
@@ -91,8 +96,11 @@ fun MainAppBar(navController: NavController) {
             IconButton(onClick = { navController.navigate("workout_history") }) {
                 Icon(Icons.Default.History, "Workout history")
             }
+
             IconButton(onClick = { navController.navigate("bluetooth_settings") }) {
-                Icon(Icons.Default.Bluetooth, "Bluetooth")
+                Icon(Icons.Default.Bluetooth,
+                    "Bluetooth",
+                    tint = if (deviceConnected) Color.Green else Color.Unspecified)
             }
         },
         elevation = 0.dp

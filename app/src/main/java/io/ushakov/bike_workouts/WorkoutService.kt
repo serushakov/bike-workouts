@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.*
 import com.polidea.rxandroidble2.RxBleClient
+import io.reactivex.disposables.Disposable
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.CHANNEL_ID
 import io.ushakov.bike_workouts.util.Constants.EXTRA_LOCATION
@@ -26,21 +27,14 @@ import io.ushakov.bike_workouts.util.Constants.UPDATE_INTERVAL_IN_MILLISECONDS
 class WorkoutService : Service() {
     //var mainHandler: Handler? = null
 
-    private lateinit var bleClient: RxBleClient
     private var fusedLocationClient: FusedLocationProviderClient? = null
     private var locationRequest: LocationRequest? = null
+
+    private var heartrateNotificationsDisposable: Disposable? = null
 
     companion object {
         const val ACTION_STOP = "${BuildConfig.APPLICATION_ID}.stop"
     }
-    // TODO unused code, Do not know where it came from
-/*    private val runnable = object : Runnable {
-        override fun run() {
-            Log.d("WorkoutService", "ping")
-
-            mainHandler!!.postDelayed(this, 1000)
-        }
-    }*/
 
     override fun onBind(p0: Intent?): IBinder? {
         return null
@@ -58,14 +52,13 @@ class WorkoutService : Service() {
             stopSelf()
         }
 
-        bleClient = RxBleClient.create(this)
 
         Log.d("WorkoutService", "start")
         ServiceStatus.IS_WORKOUT_SERVICE_RUNNING = true
 
-        //mainHandler = Handler(Looper.getMainLooper())
-
-        //mainHandler!!.postDelayed(runnable, 1000)
+        heartrateNotificationsDisposable = HeartRateDeviceManager.getInstance().subscribe {
+            Log.d("WorkoutService", "Heartrate: $it")
+        }
 
         // Workout service Notification
         generateForegroundNotification()
@@ -76,11 +69,11 @@ class WorkoutService : Service() {
     }
 
     override fun onDestroy() {
-        //Not sure if our stuff should be shutdown before calling parent onDestroy().
-        stopLocationService()
-        super.onDestroy()
+        cleanupNotifications()
         ServiceStatus.IS_WORKOUT_SERVICE_RUNNING = false
         Log.d("WorkoutService", "destroy")
+        //Not sure if our stuff should be shutdown before calling parent onDestroy().
+        super.onDestroy()
 
 // TODO unused code, Do not know where it came from
         //mainHandler?.removeCallbacks(runnable)
@@ -132,8 +125,8 @@ class WorkoutService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setColor(resources.getColor(R.color.primaryColor, theme))
             .build()
-            //.color = resources.getColor(R.color.primaryColor, theme)
-            //.  color =
+        //.color = resources.getColor(R.color.primaryColor, theme)
+        //.  color =
 
         /*val notification1: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Location in use")
@@ -205,9 +198,11 @@ class WorkoutService : Service() {
             LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
         }
     }
+
     //Not private, may be used from outside
-    fun stopLocationService() {
+    fun cleanupNotifications() {
         fusedLocationClient?.removeLocationUpdates(locationCallback)
+        heartrateNotificationsDisposable?.dispose()
         removeNotification()
     }
 
