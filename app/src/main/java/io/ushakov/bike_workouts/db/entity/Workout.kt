@@ -17,24 +17,14 @@ import java.util.*
 data class Workout(
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0,
+    @ColumnInfo(index = true)
     val userId: Long,
     val title: String,
-    val type: String,
+    val type: Int,
     val startAt: Date,
     var finishAt: Date? = null,
     var isActive: Boolean = true,
-) {
-
-    fun clone() = Workout(
-        id = this.id,
-        userId = this.userId,
-        title = this.title,
-        type = this.type,
-        startAt = this.startAt,
-        finishAt = this.finishAt,
-        isActive = this.isActive
-    )
-}
+)
 
 class WorkoutHeartRate {
     @Embedded

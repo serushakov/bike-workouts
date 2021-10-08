@@ -12,4 +12,8 @@ class SummaryRepository(private val summaryDao: SummaryDao) {
     }
 
     fun getSummaryForWorkout(workoutId: Long) = summaryDao.getForWorkout(workoutId)
+
+    suspend fun update(summary: Summary) = withContext(Dispatchers.IO) {
+        return@withContext summaryDao.update(summary)
+    }
 }

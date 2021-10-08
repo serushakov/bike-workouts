@@ -6,6 +6,7 @@ import io.ushakov.bike_workouts.db.entity.Summary
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface SummaryDao {
@@ -22,4 +23,7 @@ interface SummaryDao {
 
     @Query("SELECT * FROM summary WHERE summary.workoutId = :workoutId")
     fun getForWorkout(workoutId: Long): LiveData<Summary>
+
+    @Update
+    suspend fun update(summary: Summary): Int
 }

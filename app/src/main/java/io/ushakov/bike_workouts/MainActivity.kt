@@ -29,10 +29,14 @@ import io.ushakov.bike_workouts.ui.views.*
 import io.ushakov.bike_workouts.ui.views.in_workout.InWorkout
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.SAVED_DEVICE_SHARED_PREFERENCES_KEY
+import io.ushakov.bike_workouts.util.Constants.EXTRA_HEART_RATE
+import io.ushakov.bike_workouts.util.Constants.MINIMUM_WORKOUT_DURATION_MS
 import io.ushakov.bike_workouts.util.rememberActiveWorkout
 import io.ushakov.bike_workouts.util.rememberApplication
 import kotlinx.coroutines.*
 import java.util.*
+import kotlin.random.Random     //DO NOT REMOVE UNTIL APP IS READY
+import kotlin.random.nextInt    //DO NOT REMOVE UNTIL APP IS READY
 
 /*
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
@@ -81,6 +85,19 @@ class MainActivity : ComponentActivity() {
         StartWorkoutService()
 
         val pairedDevice by HeartRateDeviceManager.getInstance().device.observeAsState()
+
+        //Launch Dummy HR readings
+        LaunchedEffect("Dummy_HR_Readings") {
+            CoroutineScope(Dispatchers.IO).launch {
+                while (true) {
+                    delay(1234)
+                    val intentForDataReceiver = Intent(ACTION_BROADCAST)
+                    intentForDataReceiver.putExtra(EXTRA_HEART_RATE, Random.nextInt(50..150))
+                    LocalBroadcastManager.getInstance(applicationContext)
+                        .sendBroadcast(intentForDataReceiver)
+                }
+            }
+        }
 
         LaunchedEffect(pairedDevice) {
             saveDeviceAddress(pairedDevice?.macAddress ?: return@LaunchedEffect)
@@ -156,8 +173,9 @@ class MainActivity : ComponentActivity() {
         //TODO remove this code, Service starts automatically at line 265, 263 in rememberStartWorkoutService()
         val tempUserId: Long = 1
 
+        //TODO Create an ENUM class for workout type
         WorkoutDataProcessor.getInstance()
-            .createWorkout(tempUserId, "workout title", "Workout Type")
+            .createWorkout(tempUserId, "workout title", 5)
     }
 
     @Composable

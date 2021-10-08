@@ -49,9 +49,9 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
 
     fun getCompleteWorkoutById(id: Long) = workoutDao.getCompleteWorkoutById(id)
 
-    suspend fun captureWorkoutFinishDate(workoutId: Long) = withContext(Dispatchers.IO) {
+    suspend fun captureWorkoutFinishDate(workoutId: Long, finishAt: Date) = withContext(Dispatchers.IO) {
         val workout = workoutDao.getWorkoutById(workoutId)
-        workout.finishAt = Date()
+        workout.finishAt = finishAt
         return@withContext workoutDao.update(workout)
     }
 

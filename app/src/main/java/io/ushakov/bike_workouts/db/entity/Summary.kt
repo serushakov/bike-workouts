@@ -1,5 +1,6 @@
 package io.ushakov.bike_workouts.db.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.CASCADE
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.NotNull
 data class Summary(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
+    @ColumnInfo(index = true)
     val workoutId: Long,
     val distance: Double,
     val kiloCalories: Int
