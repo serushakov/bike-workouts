@@ -9,6 +9,7 @@ import kotlinx.coroutines.SupervisorJob
 import android.app.NotificationManager
 
 import android.app.NotificationChannel
+import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 
 
 import io.ushakov.bike_workouts.util.Constants.CHANNEL_ID
@@ -32,6 +33,7 @@ class WorkoutApplication: Application()  {
     // Used by workout service
     override fun onCreate() {
         super.onCreate()
+        WorkoutDataProcessor(this)
         createNotificationChannel()
     }
 
