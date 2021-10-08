@@ -48,7 +48,6 @@ TODO Setup activity calls DB and gets user and it then pass UserId here, which s
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        HeartRateDeviceManager.initialize(applicationContext)
 
         val savedDeviceAddress = getSavedDeviceAddress()
         if (savedDeviceAddress != null) {
@@ -149,27 +148,26 @@ class MainActivity : ComponentActivity() {
                     .observeAsState()
 
                 InWorkout(workoutComplete ?: return@composable) {
-                    stopWorkout(workoutComplete?.workout ?: return@InWorkout)
+                    stopWorkout()
                 }
             }
         }
     }
 
-    private fun stopWorkout(workout: Workout) {
-        val application = application as WorkoutApplication
-        //val timeDifference = workout.startAt.time - Date().time
+    private fun stopWorkout() {
+        val timeDifference =
+            Date().time - WorkoutDataProcessor.getInstance().activeWorkout.value!!.startAt.time
 
-        val timeDifference = Date().time - WorkoutDataProcessor.currentWorkoutStartTime.time
         Log.d("DBG", "timeDifference $timeDifference")
 
         if (timeDifference > MINIMUM_WORKOUT_DURATION_MS) {
             Log.d("DBG", "Stopping workout")
 
-            WorkoutDataProcessor.stopWorkout()
+            WorkoutDataProcessor.getInstance().stopWorkout()
         } else {
             Log.d("DBG", "Deleting workout")
 
-            WorkoutDataProcessor.deleteCurrentWorkout()
+            WorkoutDataProcessor.getInstance().deleteCurrentWorkout()
         }
 
         /*lifecycleScope.launch {
@@ -200,7 +198,9 @@ class MainActivity : ComponentActivity() {
         }*/
         //TODO remove this code, Service starts automatically at line 265, 263 in rememberStartWorkoutService()
         val tempUserId: Long = 1
-        WorkoutDataProcessor.createWorkout(tempUserId, "workout title", "Workout Type")
+
+        WorkoutDataProcessor.getInstance()
+            .createWorkout(tempUserId, "workout title", "Workout Type")
         startWorkoutService()
     }
 
@@ -229,11 +229,11 @@ class MainActivity : ComponentActivity() {
             if (activeWorkout == null) {
                 Log.d("DBG", "Something stops activity here")
 
-                //stopWorkoutService()
+                stopWorkoutService()
             } else {
                 Log.d("DBG", "Something starts activity here")
 
-                //startWorkoutService()
+                startWorkoutService()
             }
         }
     }

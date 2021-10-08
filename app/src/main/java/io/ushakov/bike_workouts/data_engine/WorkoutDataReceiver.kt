@@ -12,10 +12,8 @@ import io.ushakov.bike_workouts.util.Constants.EXTRA_HEART_RATE
 import io.ushakov.bike_workouts.util.Constants.HEART_DEFAULT_VALUE
 
 class WorkoutDataReceiver : BroadcastReceiver() {
-
     private var previousHeartRate: Int = HEART_DEFAULT_VALUE
     private var previousLocation: Location? = null
-    private val workoutDataProcessor = WorkoutDataProcessor()
 
     override fun onReceive(context: Context, intent: Intent) {
         //Log.d("DBG", "Broadcast received")
@@ -58,7 +56,7 @@ class WorkoutDataReceiver : BroadcastReceiver() {
 
     private fun writeValues() {
         if (previousHeartRate != HEART_DEFAULT_VALUE && previousLocation != null) {
-            workoutDataProcessor.processData(previousHeartRate, previousLocation!!)
+            WorkoutDataProcessor.getInstance().processData(previousHeartRate, previousLocation!!)
             resetPreviousValues()
         }
     }

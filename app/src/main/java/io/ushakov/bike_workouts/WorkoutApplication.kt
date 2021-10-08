@@ -33,7 +33,13 @@ class WorkoutApplication: Application()  {
     // Used by workout service
     override fun onCreate() {
         super.onCreate()
-        WorkoutDataProcessor(this)
+        HeartRateDeviceManager.initialize(this)
+        WorkoutDataProcessor.initialize(
+            workoutRepository = workoutRepository,
+            locationRepository = locationRepository,
+            heartRateRepository = heartRateRepository,
+            summaryRepository = summaryRepository,
+        )
         createNotificationChannel()
     }
 
