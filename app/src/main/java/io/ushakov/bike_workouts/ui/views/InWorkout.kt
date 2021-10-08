@@ -133,7 +133,7 @@ fun InWorkout(workoutComplete: WorkoutComplete, onWorkoutStopClick: () -> Unit) 
 
 @Composable
 fun TopRow(lastLocation: Location?, lastHeartRate: HeartRate?, startTime: Date) {
-    val speed = if (lastLocation == null) "--.-" else String.format(".1f", lastLocation.speed)
+    val speed = if (lastLocation == null) "--.-" else String.format("%.1f", lastLocation.speed)
     val heartRate = lastHeartRate?.heartRate?.toString() ?: "--"
 
     fun calculateTime(): String {
