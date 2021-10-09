@@ -24,4 +24,7 @@ interface UserDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(user: User): Long
+
+    @Query("SELECT * FROM USER WHERE id = :userId")
+    suspend fun getUserById(userId: Long): User
 }

@@ -17,6 +17,10 @@ class UserRepository(private val userDao: UserDao) {
         return@withContext userDao.insert(user)
     }
 
+    suspend fun getUserById(userId: Long) = withContext(Dispatchers.IO) {
+        return@withContext userDao.getUserById(userId)
+    }
+
     suspend fun getUserByFirstNameAndLastName(firstName: String, lastName: String): User {
         return userDao.getUserByFirstNameAndLastName(firstName, lastName)
     }

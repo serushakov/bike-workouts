@@ -1,5 +1,6 @@
 package io.ushakov.bike_workouts.db.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.CASCADE
@@ -20,6 +21,7 @@ import java.util.*
 data class HeartRate(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
+    @ColumnInfo(index = true)
     val workoutId: Long,
     val heartRate: Int,
     val timestamp: Date

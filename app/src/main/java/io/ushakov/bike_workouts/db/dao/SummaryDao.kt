@@ -6,6 +6,7 @@ import io.ushakov.bike_workouts.db.entity.Summary
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface SummaryDao {
@@ -19,4 +20,7 @@ interface SummaryDao {
     //@Insert(onConflict = OnConflictStrategy.REPLACE)
     @Insert
     suspend fun insert(summary: Summary): Long
+
+    @Update
+    suspend fun update(summary: Summary): Int
 }
