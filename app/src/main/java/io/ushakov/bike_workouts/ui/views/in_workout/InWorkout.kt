@@ -23,7 +23,7 @@ import io.ushakov.bike_workouts.db.entity.HeartRate
 import io.ushakov.bike_workouts.db.entity.Location
 import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.Workout
-import io.ushakov.bike_workouts.ui.views.in_workout.components.WorkoutMap
+import io.ushakov.bike_workouts.ui.components.WorkoutMap
 import io.ushakov.bike_workouts.ui.views.in_workout.components.WorkoutNumbers
 import kotlinx.coroutines.delay
 
@@ -57,9 +57,12 @@ fun InWorkout(
     }
 
     Column(Modifier.fillMaxSize()) {
-        WorkoutMap(locations, modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f))
+        val lastLocation = locations.lastOrNull()
+        WorkoutMap(locations = locations,
+            userLocation = lastLocation?.latLng,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f))
         Box(
             Modifier.fillMaxWidth()
         ) {

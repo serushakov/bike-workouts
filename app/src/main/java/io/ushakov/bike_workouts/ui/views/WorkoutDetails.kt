@@ -1,5 +1,6 @@
 package io.ushakov.bike_workouts.ui.views
 
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -25,6 +26,7 @@ import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.*
 import io.ushakov.bike_workouts.ui.components.ComposableMap
 import io.ushakov.bike_workouts.ui.components.SectionTitleText
+import io.ushakov.bike_workouts.ui.components.WorkoutMap
 import io.ushakov.bike_workouts.ui.theme.Blue800
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlay
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlayDark
@@ -60,12 +62,12 @@ fun WorkoutDetails(navController: NavController, workoutId: Long?) {
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-
         Box(Modifier.graphicsLayer {
             alpha = min(1f, 1 - (scrollState.value / 800f))
             translationY = scrollState.value * 0.5f
         }) {
-            WorkoutMapView(locations = locations)
+            WorkoutMap(locations = locations, userLocation = null, modifier = Modifier
+                .height(300.dp))
             BackButton(navController)
         }
 
@@ -269,39 +271,4 @@ fun ElevationSpeedRow(
         valueStart = "${maxElevation}🔺 ${minElevation}🔻",
         titleEnd = "🚴‍️Average speed",
         valueEnd = "${String.format("%.1f", mpsToKmh(locations.map { it.speed }.average()))}km/h")
-}
-
-@Composable
-fun WorkoutMapView(locations: List<Location>, modifier: Modifier = Modifier) {
-    var googleMap by remember { mutableStateOf<GoogleMap?>(null) }
-
-    DisposableEffect(locations, googleMap) {
-        val map = googleMap ?: return@DisposableEffect onDispose { }
-
-        val polyLine = map.addPolyline(
-            PolylineOptions()
-                .addAll(locations.map { LatLng(it.latitude, it.longitude) })
-                .width(5f)
-                .color(android.graphics.Color.RED)
-                .endCap(RoundCap())
-                .startCap(RoundCap())
-        )
-
-        val bounds = LatLngBounds.builder()
-        locations.forEach { bounds.include(LatLng(it.latitude, it.longitude)) }
-
-        map.setLatLngBoundsForCameraTarget(bounds.build())
-        map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 20))
-
-        onDispose {
-            polyLine.remove()
-        }
-    }
-
-    ComposableMap(
-        modifier
-            .height(300.dp)
-    ) {
-        if (googleMap == null) googleMap = it
-    }
 }
