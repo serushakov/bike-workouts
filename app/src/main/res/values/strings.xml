@@ -9,4 +9,11 @@
     <string name="device_list_item_button_label">Pair</string>
     <string name="light_mode_map_id">3778d73ddaab8c0f</string>
     <string name="dark_mode_map_id">5cec2ff9ec93090</string>
+    <string name="in_workout__info_row__distance__title">Kilometres</string>
+    <string name="in_workout__info_row__distance_fallback">--.-</string>
+    <string name="in_workout__info_row__heartrate__title">bpm</string>
+    <string name="in_workout__info_row__heartrate__fallback">--</string>
+    <string name="in_workout__info_row__speed__title">kmh</string>
+    <string name="in_workout__info_row__speed__fallback">--.-</string>
+    <string name="in_workout__info_row__time__title">Time</string>
 </resources>

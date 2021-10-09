@@ -6,7 +6,6 @@ import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import io.ushakov.myapplication.ui.theme.Shapes
 
 
 private val DarkColorPalette = darkColors(
