@@ -23,7 +23,6 @@ import io.ushakov.bike_workouts.db.entity.HeartRate
 import io.ushakov.bike_workouts.db.entity.Location
 import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.Workout
-import io.ushakov.bike_workouts.ui.components.ComposableMap
 import io.ushakov.bike_workouts.ui.views.in_workout.components.WorkoutMap
 import io.ushakov.bike_workouts.ui.views.in_workout.components.WorkoutNumbers
 import kotlinx.coroutines.delay

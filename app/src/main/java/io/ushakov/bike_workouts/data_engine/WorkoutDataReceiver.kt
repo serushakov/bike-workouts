@@ -14,6 +14,7 @@ class WorkoutDataReceiver : BroadcastReceiver() {
         val newHeartRateValue: Int = intent.getIntExtra(EXTRA_HEART_RATE, HEART_DEFAULT_VALUE)
 
         WorkoutDataProcessor.getInstance()
-            .processData(location = newLocation, heartRateValue = newHeartRateValue)
+            .processData(location = newLocation,
+                heartRateValue = if (newHeartRateValue == HEART_DEFAULT_VALUE) null else newHeartRateValue)
     }
 }
