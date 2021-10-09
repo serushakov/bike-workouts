@@ -16,4 +16,8 @@
     <string name="in_workout__info_row__speed__title">kmh</string>
     <string name="in_workout__info_row__speed__fallback">--.-</string>
     <string name="in_workout__info_row__time__title">Time</string>
+    <string name="in_workout__info_row__calories__title">kcal</string>
+    <string name="in_workout__info_row__calories__fallback">---</string>
+    <string name="in_workout__info_row__elevation__fallback">--</string>
+    <string name="in_workout__info_row__elevation__title">elevation</string>
 </resources>

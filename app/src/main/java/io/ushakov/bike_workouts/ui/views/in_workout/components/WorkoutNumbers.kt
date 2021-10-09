@@ -169,10 +169,17 @@ fun formatInfoItem(
             time to stringResource(R.string.in_workout__info_row__time__title)
         }
         InfoItem.Calories -> {
-            "200" to "kcal"
+            val calories = summary?.kiloCalories?.toString() ?: stringResource(R.string.in_workout__info_row__calories__fallback)
+
+            calories to stringResource(R.string.in_workout__info_row__calories__title)
         }
         InfoItem.Elevation -> {
-            "32" to "elevation"
+            val elevation = locations.lastOrNull()?.elevation
+
+            val formattedElevation = if (elevation != null) String.format("%.1f", elevation)
+            else stringResource(R.string.in_workout__info_row__elevation__fallback)
+
+            formattedElevation to stringResource(R.string.in_workout__info_row__elevation__title)
         }
     }
 }
