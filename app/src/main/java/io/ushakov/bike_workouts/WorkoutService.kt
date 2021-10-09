@@ -1,12 +1,14 @@
 package io.ushakov.bike_workouts
 
 import android.Manifest
-import android.app.*
+import android.app.Notification
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
@@ -14,10 +16,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.*
-import com.polidea.rxandroidble2.RxBleClient
 import io.reactivex.disposables.Disposable
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.CHANNEL_ID
+import io.ushakov.bike_workouts.util.Constants.EXTRA_HEART_RATE
 import io.ushakov.bike_workouts.util.Constants.EXTRA_LOCATION
 import io.ushakov.bike_workouts.util.Constants.SERVICE_NOTIFICATION_ID
 import io.ushakov.bike_workouts.util.Constants.SERVICE_REQUEST_CODE
@@ -54,36 +56,21 @@ class WorkoutService : Service() {
 
 
         Log.d("WorkoutService", "start")
-        ServiceStatus.IS_WORKOUT_SERVICE_RUNNING = true
 
-        heartrateNotificationsDisposable = HeartRateDeviceManager.getInstance().subscribe {
-            Log.d("WorkoutService", "Heartrate: $it")
-        }
-
-        // Workout service Notification
+        startHeartrateUpdates()
         generateForegroundNotification()
-
         startLocationUpdates()
 
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
-        cleanupNotifications()
-        ServiceStatus.IS_WORKOUT_SERVICE_RUNNING = false
         Log.d("WorkoutService", "destroy")
+        removeListeners()
         //Not sure if our stuff should be shutdown before calling parent onDestroy().
         super.onDestroy()
-
-// TODO unused code, Do not know where it came from
-        //mainHandler?.removeCallbacks(runnable)
     }
 
-/*    //Notififcation for ON-going
-    private var iconNotification: Bitmap? = null
-    private var notification: Notification? = null
-    var mNotificationManager: NotificationManager? = null
-    private val mNotificationId = 123*/
 
     private fun generateForegroundNotification() {
 
@@ -94,24 +81,7 @@ class WorkoutService : Service() {
             appNotificationIntent,
             0
         )
-        //iconNotification = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-        /*if (mNotificationManager == null) {
-        mNotificationManager =
-            this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    }
 
-    assert(mNotificationManager != null)
-    mNotificationManager?.createNotificationChannelGroup(
-        NotificationChannelGroup("chats_group", "Chats")
-    )
-    val notificationChannel =
-        NotificationChannel("service_channel", "Service Notifications",
-            NotificationManager.IMPORTANCE_MIN)
-    notificationChannel.enableLights(false)
-    notificationChannel.lockscreenVisibility = Notification.VISIBILITY_SECRET
-    mNotificationManager?.createNotificationChannel(notificationChannel)*/
-
-        //val builder = NotificationCompat.Builder(this, "service_channel")
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("${resources.getString(R.string.app_name)} service is running")
             .setTicker("${resources.getString(R.string.app_name)} service is running")
@@ -125,34 +95,8 @@ class WorkoutService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setColor(resources.getColor(R.color.primaryColor, theme))
             .build()
-        //.color = resources.getColor(R.color.primaryColor, theme)
-        //.  color =
 
-        /*val notification1: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Location in use")
-            .setContentTitle("Workout App is using location")
-            .setSmallIcon(com.google.android.gms.location.R.drawable.ic_baseline_location_on_24)
-            .setContentIntent(locationPendingIntent)
-            .build()*/
-
-        /*builder.setContentTitle(StringBuilder(resources.getString(R.string.app_name)).append(" service is running")
-        .toString())
-        .setTicker(StringBuilder(resources.getString(R.string.app_name)).append("service is running")
-            .toString())
-        .setContentText("Touch to open") //                    , swipe down for more options.
-        .setSmallIcon(R.drawable.ic_baseline_add_24)
-        .setPriority(NotificationCompat.PRIORITY_LOW)
-        .setWhen(0)
-        .setOnlyAlertOnce(true)
-        .setContentIntent(pendingIntent)
-        .setOngoing(true)
-    if (iconNotification != null) {
-        builder.setLargeIcon(Bitmap.createScaledBitmap(iconNotification!!, 128, 128, false))
-    }
-    builder.color = resources.getColor(R.color.primaryColor)
-    notification = builder.build()*/
         startForeground(SERVICE_NOTIFICATION_ID, notification)
-
     }
 
     //TODO Add permission or use PermissionUtility
@@ -181,11 +125,21 @@ class WorkoutService : Service() {
             //return false
             return
         }
+
         fusedLocationClient?.requestLocationUpdates(
             locationRequest!!,
             locationCallback,
             Looper.getMainLooper()
         )
+    }
+
+    private fun startHeartrateUpdates() {
+        heartrateNotificationsDisposable = HeartRateDeviceManager.getInstance().subscribe { heartrate ->
+            val intent = Intent(ACTION_BROADCAST)
+            intent.putExtra(EXTRA_HEART_RATE, heartrate)
+            LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+        }
+
     }
 
     //Location Callback
@@ -200,7 +154,7 @@ class WorkoutService : Service() {
     }
 
     //Not private, may be used from outside
-    fun cleanupNotifications() {
+    fun removeListeners() {
         fusedLocationClient?.removeLocationUpdates(locationCallback)
         heartrateNotificationsDisposable?.dispose()
         removeNotification()

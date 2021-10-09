@@ -22,6 +22,7 @@ import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.Typography
 import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
+import io.ushakov.bike_workouts.util.mpsToKmh
 import java.util.*
 
 enum class InfoItem {
@@ -157,7 +158,7 @@ fun formatInfoItem(
         InfoItem.Speed -> {
             val speed = locations.lastOrNull()?.speed
 
-            val formattedSpeed = if (speed != null) String.format("%.1f", speed)
+            val formattedSpeed = if (speed != null) String.format("%.1f", mpsToKmh(speed))
             else stringResource(R.string.in_workout__info_row__speed__fallback)
 
             formattedSpeed to stringResource(R.string.in_workout__info_row__speed__title)

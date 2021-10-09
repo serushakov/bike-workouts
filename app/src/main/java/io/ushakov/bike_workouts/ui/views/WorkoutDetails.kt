@@ -30,13 +30,15 @@ import io.ushakov.bike_workouts.ui.theme.PrimaryOverlay
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlayDark
 import io.ushakov.bike_workouts.ui.theme.Typography
 import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
+import io.ushakov.bike_workouts.util.mpsToKmh
 import java.lang.Float.min
 import java.util.*
 
 @Composable
 fun WorkoutDetails(navController: NavController, workoutId: Long?) {
     val application = LocalContext.current.applicationContext as WorkoutApplication
-    val workoutComplete by application.workoutRepository.getCompleteWorkoutById(workoutId ?: return).observeAsState()
+    val workoutComplete by application.workoutRepository.getCompleteWorkoutById(workoutId ?: return)
+        .observeAsState()
 
     val locations = workoutComplete?.locations
     val heartRates = workoutComplete?.heartRates
@@ -266,7 +268,7 @@ fun ElevationSpeedRow(
     InfoRow(titleStart = "🏔️Elevation",
         valueStart = "${maxElevation}🔺 ${minElevation}🔻",
         titleEnd = "🚴‍️Average speed",
-        valueEnd = "${String.format("%.1f", locations.map { it.speed }.average())}km/h")
+        valueEnd = "${String.format("%.1f", mpsToKmh(locations.map { it.speed }.average()))}km/h")
 }
 
 @Composable
