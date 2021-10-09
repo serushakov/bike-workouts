@@ -21,7 +21,6 @@ import io.ushakov.bike_workouts.db.entity.Location
 import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.Typography
-import io.ushakov.bike_workouts.ui.views.in_workout.UiState
 import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
 import java.util.*
 
@@ -36,7 +35,7 @@ fun WorkoutNumbers(
     summary: Summary?,
     heartRates: List<HeartRate>,
     locations: List<Location>,
-    uiState: UiState,
+    isWorkoutActive: Boolean,
 ) {
     var rowItems by remember {
         mutableStateOf(listOf(InfoItem.Speed,
@@ -91,8 +90,18 @@ fun WorkoutNumbers(
 
         Divider()
 
-        AnimatedContent(targetState = uiState == UiState.PAUSED) { isPaused ->
-            if (isPaused) {
+        AnimatedContent(targetState = isWorkoutActive) { isActive ->
+            if (isActive) {
+                val (text, title) = formatInfoItem(
+                    centerItem,
+                    workout,
+                    summary,
+                    heartRates,
+                    locations,
+                )
+
+                CenterInfoItem(text = text, title = title)
+            } else {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -114,16 +123,6 @@ fun WorkoutNumbers(
                         InfoRowItem(text, title, modifier = Modifier.weight(1f))
                     }
                 }
-            } else {
-                val (text, title) = formatInfoItem(
-                    centerItem,
-                    workout,
-                    summary,
-                    heartRates,
-                    locations,
-                )
-
-                CenterInfoItem(text = text, title = title)
             }
         }
 
@@ -174,7 +173,6 @@ fun formatInfoItem(
         InfoItem.Elevation -> {
             "32" to "elevation"
         }
-        else -> "" to ""
     }
 }
 

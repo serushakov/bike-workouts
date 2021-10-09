@@ -19,4 +19,7 @@ interface SummaryDao {
     //@Insert(onConflict = OnConflictStrategy.REPLACE)
     @Insert
     suspend fun insert(summary: Summary): Long
+
+    @Query("SELECT * FROM summary WHERE summary.workoutId = :workoutId")
+    fun getForWorkout(workoutId: Long): LiveData<Summary>
 }

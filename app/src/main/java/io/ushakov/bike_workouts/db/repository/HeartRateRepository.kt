@@ -10,4 +10,6 @@ class HeartRateRepository(private val heartRateDao: HeartRateDao) {
     suspend fun insert(heartRate: HeartRate) = withContext(Dispatchers.IO) {
         return@withContext heartRateDao.insert(heartRate)
     }
+
+    fun getHeartRatesForWorkout(workoutId: Long) = heartRateDao.getForWorkout(workoutId)
 }

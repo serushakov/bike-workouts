@@ -17,7 +17,6 @@ import io.ushakov.bike_workouts.util.Constants.CHANNEL_NAME
 
 
 class WorkoutApplication: Application()  {
-
     private val applicationScope = CoroutineScope(SupervisorJob())
 
     private val database by lazy {
@@ -39,6 +38,7 @@ class WorkoutApplication: Application()  {
             locationRepository = locationRepository,
             heartRateRepository = heartRateRepository,
             summaryRepository = summaryRepository,
+            coroutineScope = applicationScope
         )
         createNotificationChannel()
     }

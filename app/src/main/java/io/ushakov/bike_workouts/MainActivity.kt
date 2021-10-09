@@ -80,9 +80,8 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun View() {
         val navController = rememberNavController()
-        val application = rememberApplication()
-
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val application = rememberApplication()
 
         requestPermissions(bluetoothAdapter = bluetoothManager.adapter)
 
@@ -138,54 +137,33 @@ class MainActivity : ComponentActivity() {
                 WorkoutDetails(navController,
                     workoutId = backStackEntry.arguments?.getLong("workoutId"))
             }
-            composable("in_workout/{workoutId}",
-                arguments = listOf(navArgument("workoutId") {
-                    type = NavType.LongType
-                })) { backStackEntry ->
-                val workoutId = backStackEntry.arguments?.getLong("workoutId")
-                val workoutComplete by application.workoutRepository.getCompleteWorkoutById(
-                    workoutId ?: return@composable)
+            composable("in_workout") {
+                val activeWorkout = rememberActiveWorkout() ?: return@composable
+
+                val locations by
+                application.locationRepository.getLocationsForWorkout(activeWorkout.id)
+                    .observeAsState(listOf())
+
+                val heartRates by
+                application.heartRateRepository.getHeartRatesForWorkout(activeWorkout.id)
+                    .observeAsState(listOf())
+
+                val summary by
+                application.summaryRepository.getSummaryForWorkout(activeWorkout.id)
                     .observeAsState()
 
-                InWorkout(workoutComplete ?: return@composable) {
-                    stopWorkout()
-                }
+                InWorkout(workout = activeWorkout,
+                    locations = locations,
+                    heartRates = heartRates,
+                    summary = summary,
+                    onWorkoutPauseClick = { WorkoutDataProcessor.getInstance().pauseWorkout() },
+                    onWorkoutResumeClick = { WorkoutDataProcessor.getInstance().resumeWorkout() },
+                    onWorkoutStopClick = { WorkoutDataProcessor.getInstance().stopWorkout() }
+                )
             }
         }
     }
 
-    private fun stopWorkout() {
-        val timeDifference =
-            Date().time - WorkoutDataProcessor.getInstance().activeWorkout.value!!.startAt.time
-
-        Log.d("DBG", "timeDifference $timeDifference")
-
-        if (timeDifference > MINIMUM_WORKOUT_DURATION_MS) {
-            Log.d("DBG", "Stopping workout")
-
-            WorkoutDataProcessor.getInstance().stopWorkout()
-        } else {
-            Log.d("DBG", "Deleting workout")
-
-            WorkoutDataProcessor.getInstance().deleteCurrentWorkout()
-        }
-
-        /*lifecycleScope.launch {
-            if (timeDifference > Constants.MINIMUM_WORKOUT_DURATION_MS) {
-                application.workoutRepository.finishWorkout(workout.id)
-                application.summaryRepository.insert(Summary(
-                    workoutId = workout.id,
-                    kiloCalories = 400,
-                    distance = 200.0
-                ))
-            } else {
-                application.workoutRepository.delete(workout)
-            }
-        }*/
-        Log.d("DBG", "Stop workout. Line 221 MainActivity")
-
-        stopWorkoutService()
-    }
 
     private fun startWorkout() {
         //TODO Call WorkoutDataProcessor.create(UserId, Title, Type)
@@ -201,22 +179,21 @@ class MainActivity : ComponentActivity() {
 
         WorkoutDataProcessor.getInstance()
             .createWorkout(tempUserId, "workout title", "Workout Type")
-        startWorkoutService()
     }
 
     @Composable
     private fun NavigateToUnfinishedWorkout(navController: NavController) {
         val activeWorkout = rememberActiveWorkout()
 
-        LaunchedEffect(key1 = activeWorkout) {
+        LaunchedEffect(key1 = activeWorkout?.id) {
             if (activeWorkout == null) {
-                if (navController.currentDestination?.route == "in_workout/{workoutId}") {
+                if (navController.currentDestination?.route == "in_workout") {
                     navController.popBackStack()
                     navController.navigate("main")
                 }
             } else {
                 navController.popBackStack()
-                navController.navigate("in_workout/${activeWorkout.id}")
+                navController.navigate("in_workout")
             }
         }
     }
@@ -225,7 +202,7 @@ class MainActivity : ComponentActivity() {
     private fun StartWorkoutService() {
         val activeWorkout = rememberActiveWorkout()
 
-        LaunchedEffect(key1 = activeWorkout) {
+        LaunchedEffect(key1 = activeWorkout?.id) {
             if (activeWorkout == null) {
                 Log.d("DBG", "Something stops activity here")
 

@@ -55,8 +55,15 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
         return@withContext workoutDao.update(workout)
     }
 
-    suspend fun update(workout: Workout) = withContext(Dispatchers.IO) {
-        return@withContext workoutDao.update(workout)
+    suspend fun update(workout: Workout) {
+        workoutDao.update(workout)
+    }
+
+    suspend fun setWorkoutStatus(workoutId: Long, isActive: Boolean) {
+        val workout = workoutDao.getWorkoutById(workoutId)
+        workout.isActive = isActive
+
+        workoutDao.update(workout)
     }
 
     suspend fun update(workoutId: Long, finishTime: Date) = withContext(Dispatchers.IO) {

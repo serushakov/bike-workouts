@@ -2,7 +2,6 @@ package io.ushakov.bike_workouts.db.entity
 
 import androidx.room.*
 import androidx.room.ForeignKey.CASCADE
-import org.jetbrains.annotations.NotNull
 import java.util.*
 
 @Entity(
@@ -17,22 +16,23 @@ import java.util.*
 )
 data class Workout(
     @PrimaryKey(autoGenerate = true)
-    var id: Long,
+    var id: Long = 0,
     val userId: Long,
     val title: String,
     val type: String,
     val startAt: Date,
-    var finishAt: Date?,
+    var finishAt: Date? = null,
+    var isActive: Boolean = true,
 ) {
 
-    constructor(
-        @NotNull userId: Long,
-        @NotNull title: String,
-        @NotNull type: String,
-        @NotNull startAt: Date,
-        finishAt: Date? = null,
-    ) : this(
-        0, userId, title, type, startAt, finishAt
+    fun clone() = Workout(
+        id = this.id,
+        userId = this.userId,
+        title = this.title,
+        type = this.type,
+        startAt = this.startAt,
+        finishAt = this.finishAt,
+        isActive = this.isActive
     )
 }
 
