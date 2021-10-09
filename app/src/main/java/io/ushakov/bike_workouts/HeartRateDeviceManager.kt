@@ -3,7 +3,6 @@ package io.ushakov.bike_workouts
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
@@ -15,7 +14,6 @@ import java.util.concurrent.TimeUnit
 
 class HeartRateDeviceManager(context: Context) {
     private var bleClient = RxBleClient.create(context)
-    private var connection: RxBleConnection? = null
     private val callbacks: MutableSet<(value: Int) -> Unit> = mutableSetOf()
     private var notificationsDisposable: Disposable? = null
     private var connectionDisposable: Disposable? = null
@@ -38,19 +36,19 @@ class HeartRateDeviceManager(context: Context) {
 
     private fun decodeHeartRate(data: ByteArray): Int {
         val (flag, valueByte1, valueByte2) = data
-        var value: UInt = 0u
+        var value = 0
 
         // Format is 8bit, hence only first byte should be used
         if (flag.toInt() and 0x01 == 0) {
-            value = valueByte1.toUInt()
+            value = valueByte1.toUByte().toInt()
         } else {
             // Construct a 16bit value from 2 bytes, little-endian
             listOf(valueByte1, valueByte2).forEachIndexed { index, byte ->
-                value = value or (byte.toUInt() shl 8 * index)
+                value = value or (byte.toUByte().toInt() shl 8 * index)
             }
         }
 
-        return value.toInt()
+        return value
     }
 
     private fun sendUpdates(heartRate: Int) {
