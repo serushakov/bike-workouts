@@ -18,9 +18,10 @@ import java.util.*
 data class Workout(
     @PrimaryKey(autoGenerate = true)
     var id: Long,
+    @ColumnInfo(index = true)
     val userId: Long,
     val title: String,
-    val type: String,
+    val type: Int,
     val startAt: Date,
     var finishAt: Date?,
 ) {
@@ -28,7 +29,7 @@ data class Workout(
     constructor(
         @NotNull userId: Long,
         @NotNull title: String,
-        @NotNull type: String,
+        @NotNull type: Int,
         @NotNull startAt: Date,
         finishAt: Date? = null,
     ) : this(

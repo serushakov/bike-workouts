@@ -199,8 +199,9 @@ class MainActivity : ComponentActivity() {
         //TODO remove this code, Service starts automatically at line 265, 263 in rememberStartWorkoutService()
         val tempUserId: Long = 1
 
+        //TODO Create an ENUM class for workout type
         WorkoutDataProcessor.getInstance()
-            .createWorkout(tempUserId, "workout title", "Workout Type")
+            .createWorkout(tempUserId, "workout title", 5)
         startWorkoutService()
     }
 
