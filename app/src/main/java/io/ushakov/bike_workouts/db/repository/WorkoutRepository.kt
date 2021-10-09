@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import io.ushakov.bike_workouts.db.dao.WorkoutDao
 import io.ushakov.bike_workouts.db.entity.Workout
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import java.util.*
 
@@ -15,7 +16,8 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
 
     val unfinishedWorkout = workoutDao.getUnfinishedWorkout()
 
-    suspend fun startWorkout(userId: Long) = withContext(Dispatchers.IO) {
+    //TODO this code will move to WorkoutDataProcessor
+    /*suspend fun startWorkout(userId: Long) = withContext(Dispatchers.IO) {
         val workout = Workout(
             userId = userId,
             title = "Whatever",
@@ -23,7 +25,7 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
             startAt = Date()
         )
         return@withContext workoutDao.insert(workout)
-    }
+    }*/
 
     suspend fun insert(workout: Workout) = withContext(Dispatchers.IO) {
         return@withContext workoutDao.insert(workout)
@@ -31,6 +33,10 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
 
     suspend fun delete(workout: Workout) = withContext(Dispatchers.IO) {
         return@withContext workoutDao.delete(workout)
+    }
+
+    suspend fun deleteById(workoutId: Long) = withContext(Dispatchers.IO) {
+        return@withContext workoutDao.deleteById(workoutId)
     }
 
     suspend fun getWorkoutsByUserId(userId: Long) = withContext(Dispatchers.IO) {
@@ -43,9 +49,24 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
 
     fun getCompleteWorkoutById(id: Long) = workoutDao.getCompleteWorkoutById(id)
 
-    suspend fun finishWorkout(id: Long) = withContext(Dispatchers.IO) {
-        val workout = workoutDao.getWorkoutById(id)
-        workout.finishAt = Date()
+    suspend fun captureWorkoutFinishDate(workoutId: Long, finishAt: Date) = withContext(Dispatchers.IO) {
+        val workout = workoutDao.getWorkoutById(workoutId)
+        workout.finishAt = finishAt
         return@withContext workoutDao.update(workout)
+    }
+
+    suspend fun update(workout: Workout) {
+        workoutDao.update(workout)
+    }
+
+    suspend fun setWorkoutStatus(workoutId: Long, isActive: Boolean) {
+        val workout = workoutDao.getWorkoutById(workoutId)
+        workout.isActive = isActive
+
+        workoutDao.update(workout)
+    }
+
+    suspend fun update(workoutId: Long, finishTime: Date) = withContext(Dispatchers.IO) {
+        return@withContext workoutDao.update(workoutId, finishTime)
     }
 }

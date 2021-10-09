@@ -16,7 +16,14 @@ object Constants {
     const val ACTION_BROADCAST = "$PACKAGE_NAME.broadcast"
     const val EXTRA_LOCATION = "$PACKAGE_NAME.location"
     const val EXTRA_HEART_RATE = "$PACKAGE_NAME.heart-rate"
-    const val HEART_DEFAULT_VALUE: Int = 53
+    const val HEART_DEFAULT_VALUE: Int = 0
     const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 2000
-    const val MINIMUM_WORKOUT_DURATION_MS = 1000 * 60 // 1 minute
+    const val MINIMUM_WORKOUT_DURATION_MS = 1000 * 20 // 1 minute
+    const val DEFAULT_WORKOUT_ID: Long = 0
+    const val DEFAULT_WORKOUT_TITLE = "DEFAULT_WORKOUT_TITLE"   //TODO replace it with a suitable name later
+    const val DEFAULT_WORKOUT_TYPE = "DEFAULT_WORKOUT_TYPE"
+    val DEFAULT_WORKOUT_FINISH_TIME = null               // TODO discuss and set some default date
+    const val DEFAULT_USER_ID: Long = 0
+    const val INITIAL_DISTANCE: Double = 0.0
+
 }

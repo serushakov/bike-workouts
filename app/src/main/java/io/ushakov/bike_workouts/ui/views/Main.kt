@@ -20,21 +20,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
-import com.google.android.gms.location.*
-import com.google.android.libraries.maps.CameraUpdateFactory
-import com.google.android.libraries.maps.GoogleMap
-import com.google.android.libraries.maps.model.*
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.libraries.maps.model.LatLng
 import io.ushakov.bike_workouts.MainActivity
-import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.WorkoutSummary
-import io.ushakov.bike_workouts.ui.components.ComposableMap
 import io.ushakov.bike_workouts.ui.components.SectionTitle
 import io.ushakov.bike_workouts.ui.components.ThemedTopAppBar
 import io.ushakov.bike_workouts.ui.components.WorkoutColumnItem
+import io.ushakov.bike_workouts.ui.components.WorkoutMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.*
 
 
 @Composable
@@ -48,7 +47,10 @@ fun Main(
         topBar = { MainAppBar(navController, deviceConnected) }
     ) {
         Box(Modifier.fillMaxWidth()) {
-            MapView()
+            WorkoutMap(locations = null,
+                userLocation = rememberUserLocation(),
+                focusOnUser = true,
+                modifier = Modifier.padding(top = 40.dp))
 
             Column(Modifier
                 .height(400.dp)
@@ -131,33 +133,6 @@ fun LastWorkoutItem(navController: NavController, userId: Long) {
     }
 }
 
-@Composable
-fun MapView() {
-    var map by remember { mutableStateOf<GoogleMap?>(null) }
-    var userMarker by remember { mutableStateOf<Marker?>(null) }
-    val userLocation = rememberUserLocation()
-
-
-    LaunchedEffect(map, userLocation) {
-        if (map == null || userLocation == null) return@LaunchedEffect
-
-        if (userMarker != null) {
-            userMarker!!.position = userLocation
-        } else {
-            userMarker = map!!.addMarker(createUserMarker(userLocation))
-            map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                userLocation,
-                11f
-            ))
-        }
-    }
-
-    ComposableMap(
-        modifier = Modifier.padding(top = 40.dp),
-    ) { googleMap ->
-        map = googleMap
-    }
-}
 
 @Composable
 fun rememberUserLocation(): LatLng? {
@@ -167,14 +142,12 @@ fun rememberUserLocation(): LatLng? {
     }
     var userLocation by remember { mutableStateOf<LatLng?>(null) }
 
-
-
     if (ActivityCompat.checkSelfPermission(context,
             Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
     ) {
-        return userLocation
+        return null
     }
 
     DisposableEffect(fusedLocationProviderClient) {
@@ -219,14 +192,6 @@ fun rememberUserLocation(): LatLng? {
     return userLocation
 }
 
-fun createUserMarker(position: LatLng): MarkerOptions? {
-    val blueDot =
-        BitmapDescriptorFactory.fromResource(R.drawable.my_location)
 
-    return MarkerOptions()
-        .position(position)
-        .icon(blueDot)
-        .anchor(0.5f, 0.5f)
-}
 
 

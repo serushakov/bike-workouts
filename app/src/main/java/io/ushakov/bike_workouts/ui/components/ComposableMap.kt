@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun ComposableMap(modifier: Modifier = Modifier, onInit: (googleMap: GoogleMap) -> Unit) {
+fun ComposableMap(modifier: Modifier = Modifier, onUpdate: (googleMap: GoogleMap) -> Unit) {
     val mapViewWithLifecycle = rememberMapViewWithLifecycle()
     val scope = rememberCoroutineScope()
 
@@ -39,7 +39,7 @@ fun ComposableMap(modifier: Modifier = Modifier, onInit: (googleMap: GoogleMap) 
     ) { mapView ->
         scope.launch {
             val map = mapView.awaitMap()
-            onInit(map)
+            onUpdate(map)
 
             map.setOnMapLoadedCallback { mapReady = true }
         }

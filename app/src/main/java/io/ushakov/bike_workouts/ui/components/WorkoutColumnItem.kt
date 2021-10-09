@@ -69,7 +69,7 @@ fun WorkoutColumnItem(
                         DateText(date = date)
                         Spacer(modifier = Modifier.size(4.dp))
                         Text(
-                            text = "${distance}km, ${kcal}kcal",
+                            text = "${String.format("%.2f", distance)}km, ${kcal}kcal",
                             style = Typography.h6
                         )
                     })

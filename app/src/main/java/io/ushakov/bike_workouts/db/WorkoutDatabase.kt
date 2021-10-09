@@ -22,7 +22,7 @@ import kotlin.random.Random
     (HeartRate::class),
     (Summary::class)], version = 1, exportSchema = false)
 @TypeConverters(DatabaseTypeConverters::class)
-abstract class WorkoutDatabase: RoomDatabase() {
+abstract class WorkoutDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
     abstract fun workoutDao(): WorkoutDao
@@ -32,7 +32,7 @@ abstract class WorkoutDatabase: RoomDatabase() {
     // TODO more Dao here
 
     private class WorkoutDatabaseCallback(
-        private val scope: CoroutineScope
+        private val scope: CoroutineScope,
     ) : RoomDatabase.Callback() {
 
         override fun onCreate(db: SupportSQLiteDatabase) {
@@ -48,11 +48,11 @@ abstract class WorkoutDatabase: RoomDatabase() {
 
                     // This run only once if DB has not be initialized before
                     // TODO Clear after reinstalling App
-                   /* userDao.deleteAll()
-                    locationDao.deleteAll()
-                    workoutDao.deleteAll()
-                    heartRateDao.deleteAll()
-                    summaryDao.deleteAll()*/
+                    /* userDao.deleteAll()
+                     locationDao.deleteAll()
+                     workoutDao.deleteAll()
+                     heartRateDao.deleteAll()
+                     summaryDao.deleteAll()*/
 
 
                     // TODO populate new DB after reinstalling App
@@ -65,25 +65,65 @@ abstract class WorkoutDatabase: RoomDatabase() {
                     suspend fun createWorkout() {
                         // Workouts
                         // Workout-01
-                        val workout = Workout(userId,"Workout Title_01", "Workout Type_01", Date(Date().time - 600000), null )
+                        val workout = Workout(userId = userId,
+                            title = "Workout Title_01",
+                            type = 5,
+                            startAt = Date(Date().time - 600000))
+
                         val workoutId: Long = workoutDao.insert(workout)
                         workout.id = workoutId
 
 
-                        var location_01 = locationDao.insert(Location(workoutId, Random.nextDouble(60.000000, 61.000000), Random.nextDouble(23.500000, 24.500000), 34.45F, 45.6F, Date(1632468602)))
-                        var location_02 = locationDao.insert(Location(workoutId, Random.nextDouble(60.000000, 61.000000), Random.nextDouble(23.500000, 24.500000), 34.45F, 45.6F, Date(1632468604)))
-                        var location_03 = locationDao.insert(Location(workoutId, Random.nextDouble(60.000000, 61.000000), Random.nextDouble(23.500000, 24.500000), 34.45F, 45.6F, Date(1632468606)))
-                        var location_04 = locationDao.insert(Location(workoutId, Random.nextDouble(60.000000, 61.000000), Random.nextDouble(23.500000, 24.500000), 34.45F, 45.6F, Date(1632468608)))
-                        var location_05 = locationDao.insert(Location(workoutId, Random.nextDouble(60.000000, 61.000000), Random.nextDouble(23.500000, 24.500000), 34.45F, 45.6F, Date(1632468610)))
-                        var location_06 = locationDao.insert(Location(workoutId, Random.nextDouble(60.000000, 61.000000), Random.nextDouble(23.500000, 24.500000), 34.45F, 45.6F, Date(1632468612)))
+                        var location_01 = locationDao.insert(Location(workoutId,
+                            Random.nextDouble(60.000000, 61.000000),
+                            Random.nextDouble(23.500000, 24.500000),
+                            34.45F,
+                            45.6F,
+                            Date(1632468602)))
+                        var location_02 = locationDao.insert(Location(workoutId,
+                            Random.nextDouble(60.000000, 61.000000),
+                            Random.nextDouble(23.500000, 24.500000),
+                            34.45F,
+                            45.6F,
+                            Date(1632468604)))
+                        var location_03 = locationDao.insert(Location(workoutId,
+                            Random.nextDouble(60.000000, 61.000000),
+                            Random.nextDouble(23.500000, 24.500000),
+                            34.45F,
+                            45.6F,
+                            Date(1632468606)))
+                        var location_04 = locationDao.insert(Location(workoutId,
+                            Random.nextDouble(60.000000, 61.000000),
+                            Random.nextDouble(23.500000, 24.500000),
+                            34.45F,
+                            45.6F,
+                            Date(1632468608)))
+                        var location_05 = locationDao.insert(Location(workoutId,
+                            Random.nextDouble(60.000000, 61.000000),
+                            Random.nextDouble(23.500000, 24.500000),
+                            34.45F,
+                            45.6F,
+                            Date(1632468610)))
+                        var location_06 = locationDao.insert(Location(workoutId,
+                            Random.nextDouble(60.000000, 61.000000),
+                            Random.nextDouble(23.500000, 24.500000),
+                            34.45F,
+                            45.6F,
+                            Date(1632468612)))
 
 
-                        var heart_rate_01 = heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468602)))
-                        var heart_rate_02 = heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468604)))
-                        var heart_rate_03 = heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468606)))
-                        var heart_rate_04 = heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468608)))
-                        var heart_rate_05 = heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468610)))
-                        var heart_rate_06 = heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468612)))
+                        var heart_rate_01 =
+                            heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468602)))
+                        var heart_rate_02 =
+                            heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468604)))
+                        var heart_rate_03 =
+                            heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468606)))
+                        var heart_rate_04 =
+                            heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468608)))
+                        var heart_rate_05 =
+                            heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468610)))
+                        var heart_rate_06 =
+                            heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468612)))
 
                         summaryDao.insert(Summary(workoutId, 1.5, 400))
 
@@ -102,13 +142,13 @@ abstract class WorkoutDatabase: RoomDatabase() {
         }
     }
 
-    companion object{
+    companion object {
         @Volatile
         private var INSTANCE: WorkoutDatabase? = null
 
         fun getDatabase(
             context: Context,
-            scope: CoroutineScope
+            scope: CoroutineScope,
         ): WorkoutDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
