@@ -14,9 +14,10 @@ import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 
 import io.ushakov.bike_workouts.util.Constants.CHANNEL_ID
 import io.ushakov.bike_workouts.util.Constants.CHANNEL_NAME
+import kotlinx.coroutines.runBlocking
 
 
-class WorkoutApplication: Application()  {
+class WorkoutApplication : Application() {
     private val applicationScope = CoroutineScope(SupervisorJob())
 
     private val database by lazy {
@@ -33,6 +34,13 @@ class WorkoutApplication: Application()  {
     override fun onCreate() {
         super.onCreate()
         HeartRateDeviceManager.initialize(this)
+        initializeWorkoutDataProcessor()
+        createNotificationChannel()
+    }
+
+
+    private fun initializeWorkoutDataProcessor() {
+
         WorkoutDataProcessor.initialize(
             workoutRepository = workoutRepository,
             locationRepository = locationRepository,
@@ -40,7 +48,22 @@ class WorkoutApplication: Application()  {
             summaryRepository = summaryRepository,
             coroutineScope = applicationScope
         )
-        createNotificationChannel()
+        // Has to be blocking because it should initialize before the rest
+        // of the application
+        runBlocking {
+            val activeWorkout = workoutRepository.getUnfinishedWorkout()
+
+            if (activeWorkout != null) {
+                val user = userRepository.getUserById(1)
+                val summary = summaryRepository.getSummaryForWorkout(activeWorkout.id)
+
+                if (summary == null) {
+                    workoutRepository.delete(workout = activeWorkout)
+                } else {
+                    WorkoutDataProcessor.getInstance().restoreWorkout(user, activeWorkout, summary)
+                }
+            }
+        }
     }
 
     private fun createNotificationChannel() {

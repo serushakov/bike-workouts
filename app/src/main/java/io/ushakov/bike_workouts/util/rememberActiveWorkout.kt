@@ -8,7 +8,8 @@ import io.ushakov.bike_workouts.db.entity.Workout
 
 @Composable
 fun rememberActiveWorkout(): Workout? {
-    val unfinishedWorkout by WorkoutDataProcessor.getInstance().activeWorkout.observeAsState()
+    val application = rememberApplication()
+    val unfinishedWorkout by application.workoutRepository.unfinishedWorkout.observeAsState()
 
     return unfinishedWorkout
 }

@@ -128,7 +128,7 @@ class MainActivity : ComponentActivity() {
                     .observeAsState(listOf())
 
                 val summary by
-                application.summaryRepository.getSummaryForWorkout(activeWorkout.id)
+                application.summaryRepository.getLiveSummaryForWorkout(activeWorkout.id)
                     .observeAsState()
 
                 InWorkout(workout = activeWorkout,

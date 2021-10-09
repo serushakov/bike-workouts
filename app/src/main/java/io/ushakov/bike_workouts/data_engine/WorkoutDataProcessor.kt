@@ -2,6 +2,7 @@ package io.ushakov.bike_workouts.data_engine
 
 import android.location.Location
 import android.util.Log
+import androidx.lifecycle.LiveData
 import io.ushakov.bike_workouts.db.entity.HeartRate
 import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.User
@@ -25,10 +26,12 @@ class WorkoutDataProcessor(
     private val workoutCaloriesProcessor = WorkoutCaloriesProcessor()
     private var workoutUser: User? = null
 
-    val activeWorkout by lazy { workoutRepository.unfinishedWorkout }
+    private var activeWorkout: Workout? = null
 
-    private var currentWorkoutDistance: Double = 0.0
+    private var currentWorkoutDistance: Double? = null
     private var workoutCalories: Int = 0
+
+    private var lastSpeed: Float? = null
 
     companion object {
         private var instance: WorkoutDataProcessor? = null
@@ -55,7 +58,7 @@ class WorkoutDataProcessor(
     }
 
     fun processHeartRate(heartRateValue: Int) {
-        val workout = activeWorkout.value ?: return
+        val workout = activeWorkout ?: return
         val timestamp = Date()
         //Write HR
         coroutineScope.launch(Dispatchers.IO) {
@@ -70,30 +73,53 @@ class WorkoutDataProcessor(
     }
 
     fun processLocation(location: Location) {
-        val workout = activeWorkout.value ?: return
+        val workout = activeWorkout ?: return
         val timestamp = Date()
 
-        currentWorkoutDistance = workoutDistanceProcessor.latestDistance(location)
+        var speed = location.speed
+
+        // Ignore locations when standing in same place
+        if(speed < 1 && lastSpeed == 0f) {
+            return
+        } else if(speed < 1 && lastSpeed != 0f) {
+            lastSpeed = 0f
+            speed = 0f
+        }
+
         Log.d("DBG", "currentWorkoutDistance: $currentWorkoutDistance meters")
 
         // Insert location
         coroutineScope.launch(Dispatchers.IO) {
-            val locationId = async {
-                locationRepository.locationDoa.insert(
-                    io.ushakov.bike_workouts.db.entity.Location(
-                        workout.id,
-                        location.latitude,
-                        location.longitude,
-                        location.speed,
-                        location.speed,
-                        timestamp
-                    )
-                )
+
+            if (currentWorkoutDistance == null) {
+                val summary = summaryRepository.getSummaryForWorkout(workout.id)
+                currentWorkoutDistance = summary?.distance ?: 0.0
             }
-            Log.d("DBG", "locationId: ${locationId.await()}")
+
+
+            currentWorkoutDistance =
+                workoutDistanceProcessor.latestDistance(location, currentWorkoutDistance!!)
+
+            locationRepository.locationDao.insert(
+                io.ushakov.bike_workouts.db.entity.Location(
+                    workout.id,
+                    location.latitude,
+                    location.longitude,
+                    speed,
+                    location.altitude.toFloat(),
+                    timestamp
+                )
+            )
+            //update Summary table
+            updateSummary()
         }
-        //update Summary table
-        updateSummary()
+
+    }
+
+    fun restoreWorkout(user: User, workout: Workout, summary: Summary) {
+        workoutUser = user
+        activeWorkout = workout
+
     }
 
     fun createWorkout(user: User, title: String, type: Int) {
@@ -102,31 +128,34 @@ class WorkoutDataProcessor(
         workoutUser = user
 
         coroutineScope.launch(Dispatchers.IO) {
-            val workoutId = async {
-                workoutRepository.insert(
-                    Workout(
-                        userId = user.id,
-                        title = title,
-                        type = type,
-                        startAt = Date()
-                    )
-                )
-            }
+
+            val workout = Workout(
+                userId = user.id,
+                title = title,
+                type = type,
+                startAt = Date()
+            )
+
+            val workoutId = workoutRepository.insert(workout)
+
+            workout.id = workoutId
+
+            activeWorkout = workout
 
             //Create Summary
             summaryRepository.insert(
                 Summary(
-                    workoutId.await(),
-                    currentWorkoutDistance,
-                    workoutCalories
+                    workoutId = workoutId,
+                    distance = currentWorkoutDistance ?: 0.0,
+                    kiloCalories = workoutCalories
                 ))
 
-            Log.d("DBG", "Workout created with ${workoutId.await()} id")
+            Log.d("DBG", "Workout created with ${workoutId} id")
         }
     }
 
     fun pauseWorkout() {
-        val workout = activeWorkout.value ?: return
+        val workout = activeWorkout ?: return
 
         calculateCalories(Date())
 
@@ -139,7 +168,7 @@ class WorkoutDataProcessor(
     }
 
     fun resumeWorkout() {
-        val workout = activeWorkout.value ?: return
+        val workout = activeWorkout ?: return
 
         coroutineScope.launch(Dispatchers.IO) {
             workoutRepository.setWorkoutStatus(workout.id, true)
@@ -149,7 +178,7 @@ class WorkoutDataProcessor(
     }
 
     fun stopWorkout() {
-        val workout = activeWorkout.value ?: return
+        val workout = activeWorkout ?: return
 
         val finishTime = Date()
 
@@ -173,25 +202,32 @@ class WorkoutDataProcessor(
             }
         }
 
-        workoutDistanceProcessor.resetDistance()
-
+        activeWorkout = null
+        currentWorkoutDistance = 0.0
     }
 
 
     private fun updateSummary() {
-        CoroutineScope(Dispatchers.IO).launch {
+        val workout = activeWorkout ?: return
+
+        coroutineScope.launch(Dispatchers.IO) {
+            Log.d("WorkoutDataProcessor", "updating summary with distance $currentWorkoutDistance")
+            val summary = summaryRepository.getSummaryForWorkout(workout.id) ?: return@launch
+
             summaryRepository.update(Summary(
-                workoutId = activeWorkout.value?.id ?: return@launch,
-                currentWorkoutDistance,
-                workoutCalories
+                id = summary.id,
+                workoutId = activeWorkout?.id ?: return@launch,
+                distance = currentWorkoutDistance ?: 0.0,
+                kiloCalories = workoutCalories
             ))
         }
     }
 
     private fun calculateCalories(endTime: Date) {
-        val workout = activeWorkout.value ?: return
+        val workout = activeWorkout ?: return
+        val user = workoutUser ?: return
 
         workoutCalories =
-            workoutCaloriesProcessor.getCalories(workoutUser!!, workout, endTime)
+            workoutCaloriesProcessor.getCalories(user, workout, endTime)
     }
 }
