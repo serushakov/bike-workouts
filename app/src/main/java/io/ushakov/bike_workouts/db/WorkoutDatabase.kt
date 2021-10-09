@@ -65,7 +65,10 @@ abstract class WorkoutDatabase : RoomDatabase() {
                     suspend fun createWorkout() {
                         // Workouts
                         // Workout-01
-                        val workout = Workout(userId,"Workout Title_01", 5, Date(Date().time - 600000))
+                        val workout = Workout(userId = userId,
+                            title = "Workout Title_01",
+                            type = 5,
+                            startAt = Date(Date().time - 600000))
 
                         val workoutId: Long = workoutDao.insert(workout)
                         workout.id = workoutId

@@ -38,7 +38,6 @@ class WorkoutApplication: Application()  {
             locationRepository = locationRepository,
             heartRateRepository = heartRateRepository,
             summaryRepository = summaryRepository,
-            userRepository = userRepository,
             coroutineScope = applicationScope
         )
         createNotificationChannel()

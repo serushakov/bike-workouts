@@ -135,11 +135,12 @@ class WorkoutService : Service() {
 
     private fun startHeartrateUpdates() {
         heartrateNotificationsDisposable = HeartRateDeviceManager.getInstance().subscribe { heartrate ->
+
+            Log.d("Heartrate", heartrate.toString())
             val intent = Intent(ACTION_BROADCAST)
             intent.putExtra(EXTRA_HEART_RATE, heartrate)
             LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
         }
-
     }
 
     //Location Callback

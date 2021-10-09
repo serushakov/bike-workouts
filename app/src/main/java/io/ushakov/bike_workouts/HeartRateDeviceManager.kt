@@ -38,19 +38,19 @@ class HeartRateDeviceManager(context: Context) {
 
     private fun decodeHeartRate(data: ByteArray): Int {
         val (flag, valueByte1, valueByte2) = data
-        var value = -1
+        var value: UInt = 0u
 
         // Format is 8bit, hence only first byte should be used
         if (flag.toInt() and 0x01 == 0) {
-            value = valueByte1.toInt()
+            value = valueByte1.toUInt()
         } else {
             // Construct a 16bit value from 2 bytes, little-endian
             listOf(valueByte1, valueByte2).forEachIndexed { index, byte ->
-                value = value or (byte.toInt() shl 8 * index)
+                value = value or (byte.toUInt() shl 8 * index)
             }
         }
 
-        return value
+        return value.toInt()
     }
 
     private fun sendUpdates(heartRate: Int) {

@@ -19,7 +19,6 @@ class WorkoutDataProcessor(
     private val heartRateRepository: HeartRateRepository,
     private val locationRepository: LocationRepository,
     private val summaryRepository: SummaryRepository,
-    private val userRepository: UserRepository,
     private val coroutineScope: CoroutineScope,
 ) {
     private val workoutDistanceProcessor = WorkoutDistanceProcessor()
@@ -39,7 +38,6 @@ class WorkoutDataProcessor(
             heartRateRepository: HeartRateRepository,
             locationRepository: LocationRepository,
             summaryRepository: SummaryRepository,
-            userRepository: UserRepository,
             coroutineScope: CoroutineScope,
         ) {
             instance = WorkoutDataProcessor(
@@ -47,7 +45,6 @@ class WorkoutDataProcessor(
                 heartRateRepository,
                 locationRepository,
                 summaryRepository,
-                userRepository,
                 coroutineScope,
             )
         }
