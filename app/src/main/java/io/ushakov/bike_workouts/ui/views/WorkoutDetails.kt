@@ -33,6 +33,7 @@ import io.ushakov.bike_workouts.ui.theme.Blue800
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlay
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlayDark
 import io.ushakov.bike_workouts.ui.theme.Typography
+import io.ushakov.bike_workouts.util.distanceToKm
 import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
 import io.ushakov.bike_workouts.util.mpsToKmh
 import java.lang.Float.min
@@ -245,7 +246,7 @@ fun DurationDistanceRow(
             diff.minutes.toString().padStart(2, '0')
         }:${diff.seconds.toString().padStart(2, '0')}",
         titleEnd = "🗺Distance",
-        valueEnd = "${String.format("%.2f", distance)}km")
+        valueEnd = "${String.format("%.2f", distanceToKm(distance))}km")
 }
 
 @Composable
