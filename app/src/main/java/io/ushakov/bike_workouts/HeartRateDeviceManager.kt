@@ -101,6 +101,8 @@ class HeartRateDeviceManager(context: Context) {
     fun forgetDevice() {
         notificationsDisposable?.dispose()
         device.value = null
+        isConnected.value = false
+        isPairing.value = false
     }
 
     fun subscribe(callback: (value: Int) -> Unit): Disposable {

@@ -1,6 +1,5 @@
 package io.ushakov.bike_workouts.ui.views
 
-import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -93,6 +92,23 @@ fun WorkoutDetails(navController: NavController, workoutId: Long?) {
 
                 ElevationSpeedRow(locations)
                 Divider()
+
+                Row(Modifier.padding(all = 16.dp)) {
+                    SectionTitleText("Heart rate")
+                    Spacer(Modifier.height(100.dp))
+                }
+                Divider()
+
+                Row(Modifier.padding(all = 16.dp)) {
+                    SectionTitleText("Elevation")
+                    Spacer(Modifier.height(100.dp))
+                }
+                Divider()
+
+                Row(Modifier.padding(all = 16.dp)) {
+                    SectionTitleText("Something else")
+                    Spacer(Modifier.height(100.dp))
+                }
             }
         }
     }
@@ -280,7 +296,6 @@ fun WorkoutMapView(locations: List<Location>, modifier: Modifier = Modifier) {
         }
     }
 
-    Log.d("WorkoutMapView", "render")
     ComposableMap(
         modifier
             .height(300.dp)
