@@ -58,7 +58,7 @@ fun InWorkout(
     }
 
     Column(Modifier.fillMaxSize()) {
-        ComposableMap(onUpdate = {}, modifier = Modifier
+        WorkoutMap(locations, modifier = Modifier
             .fillMaxWidth()
             .weight(1f))
         Box(
