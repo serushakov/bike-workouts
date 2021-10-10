@@ -26,6 +26,7 @@ import io.ushakov.bike_workouts.ui.theme.Blue800
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlay
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlayDark
 import io.ushakov.bike_workouts.ui.theme.Typography
+import io.ushakov.bike_workouts.util.distanceToKm
 import java.text.DateFormat
 import java.util.*
 
@@ -46,7 +47,7 @@ fun WorkoutColumnItem(
             Row(
                 modifier =
                 Modifier
-                    .background(if(darkTheme) Color.Transparent else Black4)
+                    .background(if (darkTheme) Color.Transparent else Black4)
                     .fillMaxWidth()
                     .clickable { onClick() }
                     .padding(all = 8.dp),
@@ -69,7 +70,10 @@ fun WorkoutColumnItem(
                         DateText(date = date)
                         Spacer(modifier = Modifier.size(4.dp))
                         Text(
-                            text = "${distance}km, ${kcal}kcal",
+                            text = "${
+                                String.format("%.2f",
+                                    distanceToKm(distance))
+                            }km, ${kcal}kcal",
                             style = Typography.h6
                         )
                     })

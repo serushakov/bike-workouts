@@ -19,33 +19,36 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.ushakov.bike_workouts.db.entity.WorkoutComplete
-import io.ushakov.bike_workouts.ui.components.ComposableMap
+import io.ushakov.bike_workouts.db.entity.HeartRate
+import io.ushakov.bike_workouts.db.entity.Location
+import io.ushakov.bike_workouts.db.entity.Summary
+import io.ushakov.bike_workouts.db.entity.Workout
+import io.ushakov.bike_workouts.ui.components.WorkoutMap
 import io.ushakov.bike_workouts.ui.views.in_workout.components.WorkoutNumbers
 import kotlinx.coroutines.delay
 
-enum class UiState {
-    WORKOUT, PAUSED
-}
-
 @Composable
-fun InWorkout(workoutComplete: WorkoutComplete, onWorkoutStopClick: () -> Unit) {
-    val (
-        workout,
-        heartRates,
-        locations,
-        summary,
-    ) = workoutComplete
+fun InWorkout(
+    workout: Workout,
+    heartRates: List<HeartRate>,
+    locations: List<Location>,
+    summary: Summary?,
+    onWorkoutPauseClick: () -> Unit,
+    onWorkoutResumeClick: () -> Unit,
+    onWorkoutStopClick: () -> Unit,
+) {
+    var isActive by remember { mutableStateOf(workout.isActive) }
 
-    if (workout == null || heartRates == null || locations == null) return
+    LaunchedEffect(workout.isActive) {
+        if (isActive != workout.isActive) {
+            isActive = workout.isActive
+        }
+    }
 
-    var uiState by remember { mutableStateOf(UiState.WORKOUT) }
+    var hideStopPlayButtons by remember { mutableStateOf(isActive) }
 
-    var hideStopButton by remember { mutableStateOf(uiState != UiState.PAUSED) }
-
-
-    LaunchedEffect(uiState) {
-        hideStopButton = if (uiState == UiState.PAUSED) {
+    LaunchedEffect(isActive) {
+        hideStopPlayButtons = if (!isActive) {
             false
         } else {
             delay(200)
@@ -53,11 +56,13 @@ fun InWorkout(workoutComplete: WorkoutComplete, onWorkoutStopClick: () -> Unit) 
         }
     }
 
-
     Column(Modifier.fillMaxSize()) {
-        ComposableMap(onInit = {}, modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f))
+        val lastLocation = locations.lastOrNull()
+        WorkoutMap(locations = locations,
+            userLocation = lastLocation?.latLng,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f))
         Box(
             Modifier.fillMaxWidth()
         ) {
@@ -68,7 +73,7 @@ fun InWorkout(workoutComplete: WorkoutComplete, onWorkoutStopClick: () -> Unit) 
                     .fillMaxWidth()
                     .animateContentSize()
             ) {
-                WorkoutNumbers(workout, summary, heartRates, locations, uiState)
+                WorkoutNumbers(workout, summary, heartRates, locations, isActive)
             }
 
             Box(modifier = Modifier
@@ -78,17 +83,21 @@ fun InWorkout(workoutComplete: WorkoutComplete, onWorkoutStopClick: () -> Unit) 
 
                 StopPlayButtons(
                     onStopClick = onWorkoutStopClick,
-                    onPlayClick = { uiState = UiState.WORKOUT },
-                    uiState == UiState.PAUSED,
+                    onPlayClick = {
+                        isActive = true
+                        onWorkoutResumeClick()
+                    },
+                    !isActive,
                     Modifier
-                        .alpha(if (hideStopButton) 0f else 1f)
+                        .alpha(if (hideStopPlayButtons) 0f else 1f)
                         .align(Alignment.BottomCenter)
                 )
 
-                if (hideStopButton) {
+                if (hideStopPlayButtons) {
                     PauseButton(modifier = Modifier
                         .align(Alignment.BottomCenter)) {
-                        uiState = UiState.PAUSED
+                        isActive = false
+                        onWorkoutPauseClick()
                     }
                 }
 

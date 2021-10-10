@@ -19,18 +19,9 @@ import org.jetbrains.annotations.NotNull
 )
 data class Summary(
     @PrimaryKey(autoGenerate = true)
-    val id: Long,
+    val id: Long = 0,
     @ColumnInfo(index = true)
     val workoutId: Long,
     val distance: Double,
     val kiloCalories: Int
-    ) {
-
-    constructor(
-        @NotNull workoutId: Long,
-        @NotNull distance: Double,
-        @NotNull kiloCalories: Int
-    ) : this(
-        0, workoutId, distance, kiloCalories
-    )
-}
+)

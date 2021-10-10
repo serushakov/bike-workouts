@@ -21,6 +21,13 @@ interface SummaryDao {
     @Insert
     suspend fun insert(summary: Summary): Long
 
+    @Query("SELECT * FROM summary WHERE summary.workoutId = :workoutId")
+    fun getLiveForWorkout(workoutId: Long): LiveData<Summary>
+
+    @Query("SELECT * FROM summary WHERE summary.workoutId = :workoutId")
+    suspend fun getForWorkout(workoutId: Long): Summary?
+
+
     @Update
     suspend fun update(summary: Summary): Int
 }

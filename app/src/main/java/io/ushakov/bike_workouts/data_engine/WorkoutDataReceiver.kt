@@ -4,9 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.location.Location
-import android.util.Log
-import androidx.activity.ComponentActivity
-import io.ushakov.bike_workouts.MainActivity
 import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.util.Constants.EXTRA_HEART_RATE
 import io.ushakov.bike_workouts.util.Constants.HEART_DEFAULT_VALUE

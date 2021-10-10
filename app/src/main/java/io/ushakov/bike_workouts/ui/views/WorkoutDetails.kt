@@ -1,14 +1,19 @@
 package io.ushakov.bike_workouts.ui.views
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DirectionsBike
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,25 +23,27 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.android.libraries.maps.CameraUpdateFactory
-import com.google.android.libraries.maps.GoogleMap
-import com.google.android.libraries.maps.model.*
 import io.ushakov.bike_workouts.WorkoutApplication
-import io.ushakov.bike_workouts.db.entity.*
-import io.ushakov.bike_workouts.ui.components.ComposableMap
+import io.ushakov.bike_workouts.db.entity.HeartRate
+import io.ushakov.bike_workouts.db.entity.Location
+import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.components.SectionTitleText
+import io.ushakov.bike_workouts.ui.components.WorkoutMap
 import io.ushakov.bike_workouts.ui.theme.Blue800
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlay
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlayDark
 import io.ushakov.bike_workouts.ui.theme.Typography
+import io.ushakov.bike_workouts.util.distanceToKm
 import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
+import io.ushakov.bike_workouts.util.mpsToKmh
 import java.lang.Float.min
 import java.util.*
 
 @Composable
 fun WorkoutDetails(navController: NavController, workoutId: Long?) {
     val application = LocalContext.current.applicationContext as WorkoutApplication
-    val workoutComplete by application.workoutRepository.getCompleteWorkoutById(workoutId ?: return).observeAsState()
+    val workoutComplete by application.workoutRepository.getCompleteWorkoutById(workoutId ?: return)
+        .observeAsState()
 
     val locations = workoutComplete?.locations
     val heartRates = workoutComplete?.heartRates
@@ -58,12 +65,12 @@ fun WorkoutDetails(navController: NavController, workoutId: Long?) {
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-
         Box(Modifier.graphicsLayer {
             alpha = min(1f, 1 - (scrollState.value / 800f))
             translationY = scrollState.value * 0.5f
         }) {
-            WorkoutMapView(locations = locations)
+            WorkoutMap(locations = locations, userLocation = null, modifier = Modifier
+                .height(300.dp))
             BackButton(navController)
         }
 
@@ -239,7 +246,7 @@ fun DurationDistanceRow(
             diff.minutes.toString().padStart(2, '0')
         }:${diff.seconds.toString().padStart(2, '0')}",
         titleEnd = "🗺Distance",
-        valueEnd = "${String.format("%.2f", distance)}km")
+        valueEnd = "${String.format("%.2f", distanceToKm(distance))}km")
 }
 
 @Composable
@@ -266,40 +273,5 @@ fun ElevationSpeedRow(
     InfoRow(titleStart = "🏔️Elevation",
         valueStart = "${maxElevation}🔺 ${minElevation}🔻",
         titleEnd = "🚴‍️Average speed",
-        valueEnd = "${String.format("%.1f", locations.map { it.speed }.average())}km/h")
-}
-
-@Composable
-fun WorkoutMapView(locations: List<Location>, modifier: Modifier = Modifier) {
-    var googleMap by remember { mutableStateOf<GoogleMap?>(null) }
-
-    DisposableEffect(locations, googleMap) {
-        val map = googleMap ?: return@DisposableEffect onDispose { }
-
-        val polyLine = map.addPolyline(
-            PolylineOptions()
-                .addAll(locations.map { LatLng(it.latitude, it.longitude) })
-                .width(5f)
-                .color(android.graphics.Color.RED)
-                .endCap(RoundCap())
-                .startCap(RoundCap())
-        )
-
-        val bounds = LatLngBounds.builder()
-        locations.forEach { bounds.include(LatLng(it.latitude, it.longitude)) }
-
-        map.setLatLngBoundsForCameraTarget(bounds.build())
-        map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 20))
-
-        onDispose {
-            polyLine.remove()
-        }
-    }
-
-    ComposableMap(
-        modifier
-            .height(300.dp)
-    ) {
-        if (googleMap == null) googleMap = it
-    }
+        valueEnd = "${String.format("%.1f", mpsToKmh(locations.map { it.speed }.average()))}km/h")
 }

@@ -19,4 +19,7 @@ interface HeartRateDao {
     //@Insert(onConflict = OnConflictStrategy.REPLACE)
     @Insert
     suspend fun insert(heartRate: HeartRate): Long
+
+    @Query("SELECT * FROM heartrate WHERE heartRate.workoutId = :workoutId")
+    fun getForWorkout(workoutId: Long): LiveData<List<HeartRate>>
 }

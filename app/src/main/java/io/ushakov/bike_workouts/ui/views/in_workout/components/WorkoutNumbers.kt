@@ -2,6 +2,7 @@ package io.ushakov.bike_workouts.ui.views.in_workout.components
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
@@ -21,8 +22,9 @@ import io.ushakov.bike_workouts.db.entity.Location
 import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.Typography
-import io.ushakov.bike_workouts.ui.views.in_workout.UiState
+import io.ushakov.bike_workouts.util.distanceToKm
 import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
+import io.ushakov.bike_workouts.util.mpsToKmh
 import java.util.*
 
 enum class InfoItem {
@@ -36,7 +38,7 @@ fun WorkoutNumbers(
     summary: Summary?,
     heartRates: List<HeartRate>,
     locations: List<Location>,
-    uiState: UiState,
+    isWorkoutActive: Boolean,
 ) {
     var rowItems by remember {
         mutableStateOf(listOf(InfoItem.Speed,
@@ -44,7 +46,6 @@ fun WorkoutNumbers(
             InfoItem.Time))
     }
     var centerItem by remember { mutableStateOf(InfoItem.Distance) }
-
 
     Column(Modifier
         .padding(16.dp)
@@ -91,8 +92,18 @@ fun WorkoutNumbers(
 
         Divider()
 
-        AnimatedContent(targetState = uiState == UiState.PAUSED) { isPaused ->
-            if (isPaused) {
+        AnimatedContent(targetState = isWorkoutActive) { isActive ->
+            if (isActive) {
+                val (text, title) = formatInfoItem(
+                    centerItem,
+                    workout,
+                    summary,
+                    heartRates,
+                    locations,
+                )
+
+                CenterInfoItem(text = text, title = title)
+            } else {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -114,16 +125,6 @@ fun WorkoutNumbers(
                         InfoRowItem(text, title, modifier = Modifier.weight(1f))
                     }
                 }
-            } else {
-                val (text, title) = formatInfoItem(
-                    centerItem,
-                    workout,
-                    summary,
-                    heartRates,
-                    locations,
-                )
-
-                CenterInfoItem(text = text, title = title)
             }
         }
 
@@ -143,8 +144,7 @@ fun formatInfoItem(
     return when (infoItem) {
         InfoItem.Distance -> {
             val distance = if (summary != null) String.format("%.2f",
-                summary.distance) else stringResource(R.string.in_workout__info_row__distance_fallback)
-
+                distanceToKm(summary.distance)) else stringResource(R.string.in_workout__info_row__distance_fallback)
             (distance to stringResource(R.string.in_workout__info_row__distance__title))
         }
         InfoItem.Heartrate -> {
@@ -158,7 +158,7 @@ fun formatInfoItem(
         InfoItem.Speed -> {
             val speed = locations.lastOrNull()?.speed
 
-            val formattedSpeed = if (speed != null) String.format(".1f", speed)
+            val formattedSpeed = if (speed != null) String.format("%.1f", mpsToKmh(speed))
             else stringResource(R.string.in_workout__info_row__speed__fallback)
 
             formattedSpeed to stringResource(R.string.in_workout__info_row__speed__title)
@@ -169,12 +169,19 @@ fun formatInfoItem(
             time to stringResource(R.string.in_workout__info_row__time__title)
         }
         InfoItem.Calories -> {
-            "200" to "kcal"
+            val calories = summary?.kiloCalories?.toString()
+                ?: stringResource(R.string.in_workout__info_row__calories__fallback)
+
+            calories to stringResource(R.string.in_workout__info_row__calories__title)
         }
         InfoItem.Elevation -> {
-            "32" to "elevation"
+            val elevation = locations.lastOrNull()?.elevation
+
+            val formattedElevation = if (elevation != null) String.format("%.1f", elevation)
+            else stringResource(R.string.in_workout__info_row__elevation__fallback)
+
+            formattedElevation to stringResource(R.string.in_workout__info_row__elevation__title)
         }
-        else -> "" to ""
     }
 }
 

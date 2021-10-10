@@ -2,30 +2,33 @@ package io.ushakov.bike_workouts.data_engine
 
 import android.location.Location
 import android.util.Log
+import android.widget.Toast
 
 class WorkoutDistanceProcessor() {
-
     private var previousLocation: Location? = null
-    private var distance: Double = 0.0
 
-    fun latestDistance(currentLocation: Location): Double {
-        if (previousLocation == null) {
+    fun latestDistance(currentLocation: Location, distanceSoFar: Double): Double {
+        return if (previousLocation == null) {
             //Log.d("DBG", "previousLocation is null")
             previousLocation = currentLocation
-            return 0.0 //or Initial value
+            0.0 //or Initial value
         } else {
             //Log.d("DBG", "previousLocation is not null")
 
-            distance += currentLocation.distanceTo(previousLocation).toDouble()
-            //Log.d("DBG", "Now distance is $distance")
+                val accuracy = currentLocation.accuracy
+
+            val distanceFromLast = currentLocation.distanceTo(previousLocation).toDouble()
+
+            // If the value is under the accuracy, ignore it
+            // This filters out noise
+            if(distanceFromLast < (accuracy / 2)) return distanceSoFar
+
+            val distance = distanceSoFar + currentLocation.distanceTo(previousLocation).toDouble()
 
             previousLocation = currentLocation
-            return distance
+
+            distance
+            //Log.d("DBG", "Now distance is $distance")
         }
-    }
-
-
-    fun resetDistance() {
-        distance = 0.0
     }
 }

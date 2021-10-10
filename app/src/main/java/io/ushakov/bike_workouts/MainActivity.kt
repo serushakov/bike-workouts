@@ -17,7 +17,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.*
 import androidx.navigation.compose.NavHost
@@ -25,22 +24,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
-import io.ushakov.bike_workouts.db.entity.Summary
-import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.*
 import io.ushakov.bike_workouts.ui.views.in_workout.InWorkout
-import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.SAVED_DEVICE_SHARED_PREFERENCES_KEY
-import io.ushakov.bike_workouts.util.Constants.EXTRA_HEART_RATE
-import io.ushakov.bike_workouts.util.Constants.MINIMUM_WORKOUT_DURATION_MS
 import io.ushakov.bike_workouts.util.rememberActiveWorkout
 import io.ushakov.bike_workouts.util.rememberApplication
 import kotlinx.coroutines.*
 import java.util.*
-import kotlin.random.Random     //DO NOT REMOVE UNTIL APP IS READY
-import kotlin.random.nextInt    //DO NOT REMOVE UNTIL APP IS READY
 
 /*
 TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
@@ -80,9 +72,8 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun View() {
         val navController = rememberNavController()
-        val application = rememberApplication()
-
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val application = rememberApplication()
 
         requestPermissions(bluetoothAdapter = bluetoothManager.adapter)
 
@@ -90,19 +81,6 @@ class MainActivity : ComponentActivity() {
         StartWorkoutService()
 
         val pairedDevice by HeartRateDeviceManager.getInstance().device.observeAsState()
-
-        //Launch Dummy HR readings
-        LaunchedEffect("Dummy_HR_Readings") {
-            CoroutineScope(Dispatchers.IO).launch {
-                while (true) {
-                    delay(1234)
-                    val intentForDataReceiver = Intent(ACTION_BROADCAST)
-                    intentForDataReceiver.putExtra(EXTRA_HEART_RATE, Random.nextInt(50..150))
-                    LocalBroadcastManager.getInstance(applicationContext)
-                        .sendBroadcast(intentForDataReceiver)
-                }
-            }
-        }
 
         LaunchedEffect(pairedDevice) {
             saveDeviceAddress(pairedDevice?.macAddress ?: return@LaunchedEffect)
@@ -138,86 +116,56 @@ class MainActivity : ComponentActivity() {
                 WorkoutDetails(navController,
                     workoutId = backStackEntry.arguments?.getLong("workoutId"))
             }
-            composable("in_workout/{workoutId}",
-                arguments = listOf(navArgument("workoutId") {
-                    type = NavType.LongType
-                })) { backStackEntry ->
-                val workoutId = backStackEntry.arguments?.getLong("workoutId")
-                val workoutComplete by application.workoutRepository.getCompleteWorkoutById(
-                    workoutId ?: return@composable)
+            composable("in_workout") {
+                val activeWorkout = rememberActiveWorkout() ?: return@composable
+
+                val locations by
+                application.locationRepository.getLocationsForWorkout(activeWorkout.id)
+                    .observeAsState(listOf())
+
+                val heartRates by
+                application.heartRateRepository.getHeartRatesForWorkout(activeWorkout.id)
+                    .observeAsState(listOf())
+
+                val summary by
+                application.summaryRepository.getLiveSummaryForWorkout(activeWorkout.id)
                     .observeAsState()
 
-                InWorkout(workoutComplete ?: return@composable) {
-                    stopWorkout()
-                }
+                InWorkout(workout = activeWorkout,
+                    locations = locations,
+                    heartRates = heartRates,
+                    summary = summary,
+                    onWorkoutPauseClick = { WorkoutDataProcessor.getInstance().pauseWorkout() },
+                    onWorkoutResumeClick = { WorkoutDataProcessor.getInstance().resumeWorkout() },
+                    onWorkoutStopClick = { WorkoutDataProcessor.getInstance().stopWorkout() }
+                )
             }
         }
     }
 
-    private fun stopWorkout() {
-        val timeDifference =
-            Date().time - WorkoutDataProcessor.getInstance().activeWorkout.value!!.startAt.time
-
-        Log.d("DBG", "timeDifference $timeDifference")
-
-        if (timeDifference > MINIMUM_WORKOUT_DURATION_MS) {
-            Log.d("DBG", "Stopping workout")
-
-            WorkoutDataProcessor.getInstance().stopWorkout()
-        } else {
-            Log.d("DBG", "Deleting workout")
-
-            WorkoutDataProcessor.getInstance().deleteCurrentWorkout()
-        }
-
-        /*lifecycleScope.launch {
-            if (timeDifference > Constants.MINIMUM_WORKOUT_DURATION_MS) {
-                application.workoutRepository.finishWorkout(workout.id)
-                application.summaryRepository.insert(Summary(
-                    workoutId = workout.id,
-                    kiloCalories = 400,
-                    distance = 200.0
-                ))
-            } else {
-                application.workoutRepository.delete(workout)
-            }
-        }*/
-        Log.d("DBG", "Stop workout. Line 221 MainActivity")
-
-        stopWorkoutService()
-    }
 
     private fun startWorkout() {
-        //TODO Call WorkoutDataProcessor.create(UserId, Title, Type)
-        //TODO("Create a workout in DB and return Id")
-        // return should be a job so that we can use await()
-        // set WorkoutDataProcessor.currentWorkoutId
-        Log.d("DBG", "Start workout. Line 228 MainActivity")
-        /*lifecycleScope.launch {
-            (application as WorkoutApplication).workoutRepository.startWorkout(1)
-        }*/
-        //TODO remove this code, Service starts automatically at line 265, 263 in rememberStartWorkoutService()
-        val tempUserId: Long = 1
+        CoroutineScope(Dispatchers.IO).launch {
+            val user = (application as WorkoutApplication).userRepository.getUserById(1)
 
-        //TODO Create an ENUM class for workout type
-        WorkoutDataProcessor.getInstance()
-            .createWorkout(tempUserId, "workout title", 5)
-        startWorkoutService()
+            WorkoutDataProcessor.getInstance()
+                .createWorkout(user, "workout title", 5)
+        }
     }
 
     @Composable
     private fun NavigateToUnfinishedWorkout(navController: NavController) {
         val activeWorkout = rememberActiveWorkout()
 
-        LaunchedEffect(key1 = activeWorkout) {
+        LaunchedEffect(key1 = activeWorkout?.id) {
             if (activeWorkout == null) {
-                if (navController.currentDestination?.route == "in_workout/{workoutId}") {
+                if (navController.currentDestination?.route == "in_workout") {
                     navController.popBackStack()
                     navController.navigate("main")
                 }
             } else {
                 navController.popBackStack()
-                navController.navigate("in_workout/${activeWorkout.id}")
+                navController.navigate("in_workout")
             }
         }
     }
@@ -226,7 +174,7 @@ class MainActivity : ComponentActivity() {
     private fun StartWorkoutService() {
         val activeWorkout = rememberActiveWorkout()
 
-        LaunchedEffect(key1 = activeWorkout) {
+        LaunchedEffect(key1 = activeWorkout?.id) {
             if (activeWorkout == null) {
                 Log.d("DBG", "Something stops activity here")
 
