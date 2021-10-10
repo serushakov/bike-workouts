@@ -3,9 +3,8 @@ package io.ushakov.bike_workouts.ui.views.first_time_setup
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material.Button
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -17,13 +16,14 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.rememberPermissionState
-import io.ushakov.bike_workouts.R
-import io.ushakov.bike_workouts.ui.theme.Typography
+import io.ushakov.bike_workouts.ui.views.first_time_setup.components.Measurements
 
 @Composable
 fun FirstTimeSetup() {
     val navController = rememberNavController()
-    var nameInputValue by remember { mutableStateOf<String?>(null) }
+    var name by remember { mutableStateOf<String?>(null) }
+    var age by remember { mutableStateOf<Int?>(null) }
+    var weight by remember { mutableStateOf<Int?>(null) }
 
 
     NavHost(navController = navController, startDestination = "name") {
@@ -34,19 +34,14 @@ fun FirstTimeSetup() {
             }
         }
         composable("measurements") {
-            Surface(
-                modifier = Modifier.fillMaxHeight()
-            ) {
-                Column {
-
-                    Text(text = "Measurements")
-                    Button(onClick = {
-                        navController.navigate("permissions")
-                    }) {
-                        Text("Next")
-                    }
-                }
-
+            Measurements(
+                name ?: return@composable,
+                age,
+                weight
+            ) { resultAge, resultWeight ->
+                age = resultAge
+                weight = resultWeight
+                navController.navigate("permissions")
             }
         }
         composable("permissions") {
