@@ -2,16 +2,11 @@ package io.ushakov.bike_workouts.data_engine
 
 import android.location.Location
 import android.util.Log
-import androidx.lifecycle.LiveData
-import io.ushakov.bike_workouts.db.entity.HeartRate
-import io.ushakov.bike_workouts.db.entity.Summary
-import io.ushakov.bike_workouts.db.entity.User
-import io.ushakov.bike_workouts.db.entity.Workout
+import io.ushakov.bike_workouts.db.entity.*
 import io.ushakov.bike_workouts.db.repository.*
 import io.ushakov.bike_workouts.util.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -20,6 +15,7 @@ class WorkoutDataProcessor(
     private val heartRateRepository: HeartRateRepository,
     private val locationRepository: LocationRepository,
     private val summaryRepository: SummaryRepository,
+    private val durationRepository: DurationRepository,
     private val coroutineScope: CoroutineScope,
 ) {
     private val workoutDistanceProcessor = WorkoutDistanceProcessor()
@@ -27,6 +23,7 @@ class WorkoutDataProcessor(
     private var workoutUser: User? = null
 
     private var activeWorkout: Workout? = null
+    private var activeDuration: Duration? = null
 
     private var currentWorkoutDistance: Double? = null
     private var workoutCalories: Int = 0
@@ -41,6 +38,7 @@ class WorkoutDataProcessor(
             heartRateRepository: HeartRateRepository,
             locationRepository: LocationRepository,
             summaryRepository: SummaryRepository,
+            durationRepository: DurationRepository,
             coroutineScope: CoroutineScope,
         ) {
             instance = WorkoutDataProcessor(
@@ -48,6 +46,7 @@ class WorkoutDataProcessor(
                 heartRateRepository,
                 locationRepository,
                 summaryRepository,
+                durationRepository,
                 coroutineScope,
             )
         }
@@ -150,7 +149,11 @@ class WorkoutDataProcessor(
                     kiloCalories = workoutCalories
                 ))
 
-            Log.d("DBG", "Workout created with ${workoutId} id")
+            //Duration will be added into DB now and we will update this duration when workout pause
+            //On resume we will create a new duration
+            durationRepository.insert(Duration(0, workoutId, workout.startAt, null))
+
+            Log.d("DBG", "Workout created with $workoutId id")
         }
     }
 

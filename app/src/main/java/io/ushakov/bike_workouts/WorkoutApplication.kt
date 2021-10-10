@@ -29,6 +29,7 @@ class WorkoutApplication : Application() {
     val locationRepository by lazy { LocationRepository(database.locationDoa()) }
     val heartRateRepository by lazy { HeartRateRepository(database.heartRateDao()) }
     val summaryRepository by lazy { SummaryRepository(database.summaryDao()) }
+    val durationRepository by lazy { DurationRepository(database.durationDao()) }
 
     // Used by workout service
     override fun onCreate() {
@@ -46,6 +47,7 @@ class WorkoutApplication : Application() {
             locationRepository = locationRepository,
             heartRateRepository = heartRateRepository,
             summaryRepository = summaryRepository,
+            durationRepository = durationRepository,
             coroutineScope = applicationScope
         )
         // Has to be blocking because it should initialize before the rest

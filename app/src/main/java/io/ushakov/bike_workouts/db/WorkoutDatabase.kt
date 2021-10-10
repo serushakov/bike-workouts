@@ -29,7 +29,7 @@ abstract class WorkoutDatabase : RoomDatabase() {
     abstract fun locationDoa(): LocationDao
     abstract fun heartRateDao(): HeartRateDao
     abstract fun summaryDao(): SummaryDao
-    // TODO more Dao here
+    abstract fun durationDao(): DurationDao
 
     private class WorkoutDatabaseCallback(
         private val scope: CoroutineScope,
@@ -45,6 +45,7 @@ abstract class WorkoutDatabase : RoomDatabase() {
                     val locationDao = database.locationDoa()
                     val heartRateDao = database.heartRateDao()
                     val summaryDao = database.summaryDao()
+                    val durationDao = database.durationDao()
 
                     // This run only once if DB has not be initialized before
                     // TODO Clear after reinstalling App
@@ -127,6 +128,7 @@ abstract class WorkoutDatabase : RoomDatabase() {
 
                         summaryDao.insert(Summary(workoutId = workoutId, distance = 1.5, kiloCalories = 400))
 
+                        durationDao.insert(Duration(0, workout.id, workout.startAt, Date()))
                         workout.finishAt = Date()
                         workoutDao.update(workout)
                     }
