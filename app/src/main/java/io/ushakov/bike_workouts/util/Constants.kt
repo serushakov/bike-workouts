@@ -25,5 +25,8 @@ object Constants {
     val DEFAULT_WORKOUT_FINISH_TIME = null               // TODO discuss and set some default date
     const val DEFAULT_USER_ID: Long = 0
     const val INITIAL_DISTANCE: Double = 0.0
-
+    const val MINIMUM_AGE = 16
+    const val MAXIMUM_AGE = 100
+    const val MINIMUM_WEIGHT = 20
+    const val MAXIMUM_WEIGHT = 300
 }

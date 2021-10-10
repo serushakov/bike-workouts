@@ -24,4 +24,7 @@
     <string name="intro__name__subtitle">How should we call you?</string>
     <string name="intro__continue_button">Continue</string>
     <string name="intro__name__input_label">Name</string>
+    <string name="intro__measurements__input_invalid">Input value is invalid</string>
+    <string name="intro__measurements__age_input__error">Age should be between %d and %d</string>
+    <string name="intro__measurements__weight_input__error">Weight should be between %d and %d</string>
 </resources>
