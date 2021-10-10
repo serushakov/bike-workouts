@@ -26,6 +26,7 @@ import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.*
+import io.ushakov.bike_workouts.ui.views.first_time_setup.FirstTimeSetup
 import io.ushakov.bike_workouts.ui.views.in_workout.InWorkout
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.SAVED_DEVICE_SHARED_PREFERENCES_KEY
@@ -75,7 +76,7 @@ class MainActivity : ComponentActivity() {
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val application = rememberApplication()
 
-        requestPermissions(bluetoothAdapter = bluetoothManager.adapter)
+//        requestPermissions(bluetoothAdapter = bluetoothManager.adapter)
 
         NavigateToUnfinishedWorkout(navController)
         StartWorkoutService()
@@ -89,56 +90,65 @@ class MainActivity : ComponentActivity() {
         val isPairing by HeartRateDeviceManager.getInstance().isPairing.observeAsState()
         val isDeviceConnected by HeartRateDeviceManager.getInstance().isConnected.observeAsState()
 
-        NavHost(navController = navController, startDestination = "main") {
-            composable("main") {
-                Main(navController, 1, isDeviceConnected ?: false) { startWorkout() }
-            }
-            composable("workout_history") {
-                WorkoutHistory(navController, 1)
-            }
-            composable("bluetooth_settings") {
-                BluetoothSettings(
-                    navController,
-                    isPairing = isPairing ?: false,
-                    device = pairedDevice,
-                    onDevicePair = { address ->
-                        HeartRateDeviceManager.getInstance().setupDevice(address) {}
-                    }
-                ) {
-                    HeartRateDeviceManager.getInstance().forgetDevice()
-                    forgetSavedDevice()
+
+        val isFirstTimeSetupDone = false
+
+        if (!isFirstTimeSetupDone) {
+            FirstTimeSetup()
+        } else {
+            NavHost(navController = navController, startDestination = "main") {
+                composable("main") {
+                    Main(navController, 1, isDeviceConnected ?: false) { startWorkout() }
                 }
-            }
-            composable("workout_details/{workoutId}",
-                arguments = listOf(navArgument("workoutId") {
-                    type = NavType.LongType
-                })) { backStackEntry ->
-                WorkoutDetails(navController,
-                    workoutId = backStackEntry.arguments?.getLong("workoutId"))
-            }
-            composable("in_workout") {
-                val activeWorkout = rememberActiveWorkout() ?: return@composable
+                composable("workout_history") {
+                    WorkoutHistory(navController, 1)
+                }
+                composable("bluetooth_settings") {
+                    BluetoothSettings(
+                        navController,
+                        isPairing = isPairing ?: false,
+                        device = pairedDevice,
+                        onDevicePair = { address ->
+                            HeartRateDeviceManager.getInstance().setupDevice(address) {}
+                        }
+                    ) {
+                        HeartRateDeviceManager.getInstance().forgetDevice()
+                        forgetSavedDevice()
+                    }
+                }
+                composable("workout_details/{workoutId}",
+                    arguments = listOf(navArgument("workoutId") {
+                        type = NavType.LongType
+                    })) { backStackEntry ->
+                    WorkoutDetails(navController,
+                        workoutId = backStackEntry.arguments?.getLong("workoutId"))
+                }
+                composable("in_workout") {
+                    val activeWorkout = rememberActiveWorkout() ?: return@composable
 
-                val locations by
-                application.locationRepository.getLocationsForWorkout(activeWorkout.id)
-                    .observeAsState(listOf())
+                    val locations by
+                    application.locationRepository.getLocationsForWorkout(activeWorkout.id)
+                        .observeAsState(listOf())
 
-                val heartRates by
-                application.heartRateRepository.getHeartRatesForWorkout(activeWorkout.id)
-                    .observeAsState(listOf())
+                    val heartRates by
+                    application.heartRateRepository.getHeartRatesForWorkout(activeWorkout.id)
+                        .observeAsState(listOf())
 
-                val summary by
-                application.summaryRepository.getLiveSummaryForWorkout(activeWorkout.id)
-                    .observeAsState()
+                    val summary by
+                    application.summaryRepository.getLiveSummaryForWorkout(activeWorkout.id)
+                        .observeAsState()
 
-                InWorkout(workout = activeWorkout,
-                    locations = locations,
-                    heartRates = heartRates,
-                    summary = summary,
-                    onWorkoutPauseClick = { WorkoutDataProcessor.getInstance().pauseWorkout() },
-                    onWorkoutResumeClick = { WorkoutDataProcessor.getInstance().resumeWorkout() },
-                    onWorkoutStopClick = { WorkoutDataProcessor.getInstance().stopWorkout() }
-                )
+                    InWorkout(workout = activeWorkout,
+                        locations = locations,
+                        heartRates = heartRates,
+                        summary = summary,
+                        onWorkoutPauseClick = { WorkoutDataProcessor.getInstance().pauseWorkout() },
+                        onWorkoutResumeClick = {
+                            WorkoutDataProcessor.getInstance().resumeWorkout()
+                        },
+                        onWorkoutStopClick = { WorkoutDataProcessor.getInstance().stopWorkout() }
+                    )
+                }
             }
         }
     }
