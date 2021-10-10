@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.*
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.db.entity.WorkoutComplete
+import io.ushakov.bike_workouts.db.entity.WorkoutDuration
 import io.ushakov.bike_workouts.db.entity.WorkoutSummary
 import java.util.*
 
@@ -61,4 +62,7 @@ interface WorkoutDao {
 
     @Query("UPDATE WORKOUT SET finishAt = :finishTime WHERE id = :workoutId")
     suspend fun update(workoutId: Long, finishTime: Date): Int
+
+    @Query("SELECT * FROM workout WHERE workout.id = :workoutId")
+    suspend fun getWorkoutDurations(workoutId: Long): WorkoutDuration
 }
