@@ -20,4 +20,8 @@
     <string name="in_workout__info_row__calories__fallback">---</string>
     <string name="in_workout__info_row__elevation__fallback">--</string>
     <string name="in_workout__info_row__elevation__title">elevation</string>
+    <string name="intro__name__titile">Hello 👋</string>
+    <string name="intro__name__subtitle">How should we call you?</string>
+    <string name="intro__continue_button">Continue</string>
+    <string name="intro__name__input_label">Name</string>
 </resources>
