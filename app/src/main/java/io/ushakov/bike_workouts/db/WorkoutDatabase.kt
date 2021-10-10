@@ -125,7 +125,7 @@ abstract class WorkoutDatabase : RoomDatabase() {
                         var heart_rate_06 =
                             heartRateDao.insert(HeartRate(workoutId, 50, Date(1632468612)))
 
-                        summaryDao.insert(Summary(workoutId, 1.5, 400))
+                        summaryDao.insert(Summary(workoutId = workoutId, distance = 1.5, kiloCalories = 400))
 
                         workout.finishAt = Date()
                         workoutDao.update(workout)

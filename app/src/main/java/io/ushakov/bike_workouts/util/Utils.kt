@@ -33,3 +33,5 @@ fun getDifferenceBetweenDates(date1: Date, date2: Date): DateDifference {
 
 fun mpsToKmh(mps: Float) = mps * 3.6
 fun mpsToKmh(mps: Double) = mps * 3.6
+
+fun distanceToKm(distance: Double) = distance / 1000

@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import io.ushakov.bike_workouts.db.dao.WorkoutDao
 import io.ushakov.bike_workouts.db.entity.Workout
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import java.util.*
 
@@ -14,7 +13,9 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
 
     val allWorkout: LiveData<List<Workout>> = workoutDao.getAllWorkouts()
 
-    val unfinishedWorkout = workoutDao.getUnfinishedWorkout()
+    val unfinishedWorkout = workoutDao.getLiveUnfinishedWorkout()
+
+    suspend fun getUnfinishedWorkout() = workoutDao.getUnfinishedWorkout()
 
     //TODO this code will move to WorkoutDataProcessor
     /*suspend fun startWorkout(userId: Long) = withContext(Dispatchers.IO) {
