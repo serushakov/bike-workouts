@@ -10,6 +10,7 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.*
 import androidx.compose.foundation.layout.*
@@ -46,6 +47,9 @@ class MainActivity : ComponentActivity() {
         if (savedDeviceAddress != null) {
             HeartRateDeviceManager.getInstance().setupDevice(savedDeviceAddress) {}
         }
+
+        // Views will avoid keyboard
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
 
         //Initialize Broadcast receiver
