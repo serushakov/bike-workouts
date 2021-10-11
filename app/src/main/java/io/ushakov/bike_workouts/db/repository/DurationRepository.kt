@@ -15,4 +15,8 @@ class DurationRepository(private val durationDao: DurationDao) {
     suspend fun update(duration: Duration) = withContext(Dispatchers.IO) {
         return@withContext durationDao.update(duration)
     }
+
+    suspend fun getById(durationId: Long) = withContext(Dispatchers.IO) {
+        return@withContext durationDao.getById(durationId)
+    }
 }

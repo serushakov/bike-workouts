@@ -87,5 +87,5 @@ class WorkoutDuration {
         parentColumn = "id",
         entityColumn = "workoutId"
     )
-    var duration: List<Summary>? = null
+    var duration: List<Duration>? = null
 }

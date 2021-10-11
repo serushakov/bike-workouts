@@ -63,6 +63,7 @@ interface WorkoutDao {
     @Query("UPDATE WORKOUT SET finishAt = :finishTime WHERE id = :workoutId")
     suspend fun update(workoutId: Long, finishTime: Date): Int
 
+    @Transaction
     @Query("SELECT * FROM workout WHERE workout.id = :workoutId")
     suspend fun getWorkoutDurations(workoutId: Long): WorkoutDuration
 }

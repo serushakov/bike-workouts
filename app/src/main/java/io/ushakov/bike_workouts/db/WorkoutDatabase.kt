@@ -20,7 +20,8 @@ import kotlin.random.Random
     (Workout::class),
     (Location::class),
     (HeartRate::class),
-    (Summary::class)], version = 1, exportSchema = false)
+    (Summary::class),
+    (Duration::class)], version = 1, exportSchema = false)
 @TypeConverters(DatabaseTypeConverters::class)
 abstract class WorkoutDatabase : RoomDatabase() {
 

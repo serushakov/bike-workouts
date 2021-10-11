@@ -20,11 +20,11 @@ import java.util.*
 )
 data class Duration(
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    var id: Long = 0,
     @ColumnInfo(index = true)
     val workoutId: Long,
     val startAt: Date,
-    val stopAt: Date?
+    var stopAt: Date?
 ) /*{
 
     constructor(

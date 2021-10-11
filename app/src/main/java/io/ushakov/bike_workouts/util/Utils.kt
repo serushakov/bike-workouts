@@ -31,6 +31,40 @@ fun getDifferenceBetweenDates(date1: Date, date2: Date): DateDifference {
 
 }
 
+fun getDifferenceBetweenDates(startTimeInMicroSeconds: Long, stopTimeInMicroSeconds: Long): DateDifference {
+    val millisecondsDiff = stopTimeInMicroSeconds - startTimeInMicroSeconds
+    val seconds: Long = millisecondsDiff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+
+    val days = (hours / 24).toInt()
+
+    return DateDifference(
+        hours = (hours % 24).toInt(),
+        minutes = (minutes % 60).toInt(),
+        seconds = (seconds % 60).toInt(),
+        days = days,
+    )
+
+}
+
+fun getDifferenceBetweenDates(stopTimeInMicroSeconds: Long): DateDifference {
+    //val millisecondsDiff = stopTimeInMicroSeconds - startTimeInMicroSeconds
+    val seconds: Long = stopTimeInMicroSeconds / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+
+    val days = (hours / 24).toInt()
+
+    return DateDifference(
+        hours = (hours % 24).toInt(),
+        minutes = (minutes % 60).toInt(),
+        seconds = (seconds % 60).toInt(),
+        days = days,
+    )
+
+}
+
 fun mpsToKmh(mps: Float) = mps * 3.6
 fun mpsToKmh(mps: Double) = mps * 3.6
 
