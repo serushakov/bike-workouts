@@ -27,4 +27,12 @@
     <string name="intro__measurements__input_invalid">Input value is invalid</string>
     <string name="intro__measurements__age_input__error">Age should be between %d and %d</string>
     <string name="intro__measurements__weight_input__error">Weight should be between %d and %d</string>
+    <string name="intro__permissions__1_text">Almost done!\nApp requires Location permissions to save your rides and calculate calories and distances. Also, it enables Bluetooth!</string>
+    <string name="intro__permissions__1_text_re_request">App requires Location permissions to save your rides and calculate calories and distances. Also, it enables Bluetooth!</string>
+    <string name="intro__permissions__settings_button">Take me there</string>
+    <string name="intro__permissions__2__text">App requires access to location to function properly. Please go to Settings and allow BikeWorkouts to use location.</string>
+    <string name="intro__permissions__1_title">Permissions</string>
+    <string name="intro__permissions__2__title">No permissions 😕</string>
+    <string name="intro__permissions__1__button">Continue</string>
+
 </resources>

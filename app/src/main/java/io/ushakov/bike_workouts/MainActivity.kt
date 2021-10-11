@@ -21,11 +21,14 @@ import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.*
 import io.ushakov.bike_workouts.ui.views.first_time_setup.FirstTimeSetup
+import io.ushakov.bike_workouts.ui.views.first_time_setup.components.Permissions
 import io.ushakov.bike_workouts.ui.views.in_workout.InWorkout
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.SAVED_DEVICE_SHARED_PREFERENCES_KEY
@@ -47,7 +50,6 @@ class MainActivity : ComponentActivity() {
         // Views will avoid keyboard
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
-
         val workoutDataReceiver = WorkoutDataReceiver()
         workoutDataReceiver.let {
             LocalBroadcastManager.getInstance(this)
@@ -68,17 +70,28 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
+    @OptIn(ExperimentalPermissionsApi::class)
     @Composable
     fun Root() {
         val application = rememberApplication()
         var isFirstTimeSetupDone by remember { mutableStateOf(application.user != null) }
-        var userId by remember { mutableStateOf<Long?>(application.user?.id) }
+        var userId by remember { mutableStateOf(application.user?.id) }
+
+        val locationPermissionState =
+            rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
+        var arePermissionsReallyGranted by remember { mutableStateOf(locationPermissionState.hasPermission) }
+
 
         if (!isFirstTimeSetupDone || userId == null) {
             FirstTimeSetup { newUserId ->
                 saveUserId(newUserId)
                 userId = newUserId
                 isFirstTimeSetupDone = true
+            }
+        } else if (!locationPermissionState.hasPermission && !arePermissionsReallyGranted) {
+            // Re-request permissions if app does not have them any more
+            Permissions(reRequestingPermissions = true) {
+                arePermissionsReallyGranted = true
             }
         } else {
             View(userId = userId!!)
@@ -94,13 +107,6 @@ class MainActivity : ComponentActivity() {
         NavigateToUnfinishedWorkout(navController)
         StartWorkoutService()
 
-        val pairedDevice by HeartRateDeviceManager.getInstance().device.observeAsState()
-
-        LaunchedEffect(pairedDevice) {
-            saveDeviceAddress(pairedDevice?.macAddress ?: return@LaunchedEffect)
-        }
-
-        val isPairing by HeartRateDeviceManager.getInstance().isPairing.observeAsState()
         val isDeviceConnected by HeartRateDeviceManager.getInstance().isConnected.observeAsState()
 
         NavHost(navController = navController, startDestination = "main") {
@@ -111,6 +117,13 @@ class MainActivity : ComponentActivity() {
                 WorkoutHistory(navController, userId)
             }
             composable("bluetooth_settings") {
+                val isPairing by HeartRateDeviceManager.getInstance().isPairing.observeAsState()
+                val pairedDevice by HeartRateDeviceManager.getInstance().device.observeAsState()
+
+                LaunchedEffect(pairedDevice) {
+                    saveDeviceAddress(pairedDevice?.macAddress ?: return@LaunchedEffect)
+                }
+
                 BluetoothSettings(
                     navController,
                     isPairing = isPairing ?: false,
@@ -252,12 +265,7 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    private fun requestPermissions(bluetoothAdapter: BluetoothAdapter) {
-        if (!bluetoothAdapter.isEnabled) {
-            Log.d("DBG", "No Bluetooth LE capability")
-        } else if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d("DBG", "No fine location access")
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
-        }
+    private fun checkPermissions(): Boolean {
+        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
     }
 }
