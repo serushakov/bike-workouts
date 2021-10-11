@@ -1,5 +1,9 @@
 package io.ushakov.bike_workouts.util
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.*
 
 data class DateDifference(
@@ -35,3 +39,18 @@ fun mpsToKmh(mps: Float) = mps * 3.6
 fun mpsToKmh(mps: Double) = mps * 3.6
 
 fun distanceToKm(distance: Double) = distance / 1000
+
+fun <T> debounce(
+    waitMs: Long = 300L,
+    coroutineScope: CoroutineScope,
+    destinationFunction: (T) -> Unit
+): (T) -> Unit {
+    var debounceJob: Job? = null
+    return { param: T ->
+        debounceJob?.cancel()
+        debounceJob = coroutineScope.launch {
+            delay(waitMs)
+            destinationFunction(param)
+        }
+    }
+}

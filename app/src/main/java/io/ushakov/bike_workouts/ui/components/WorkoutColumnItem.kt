@@ -37,49 +37,45 @@ fun WorkoutColumnItem(
     kcal: Int,
     onClick: () -> Unit,
 ) {
-
     val darkTheme = isSystemInDarkTheme()
 
     Card(Modifier
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(8.dp))) {
-        Row {
-            Row(
-                modifier =
-                Modifier
-                    .background(if (darkTheme) Color.Transparent else Black4)
-                    .fillMaxWidth()
-                    .clickable { onClick() }
-                    .padding(all = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    content = {
-                        BicycleIcon()
-                    },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(if (darkTheme) PrimaryOverlayDark else PrimaryOverlay),
-                    contentAlignment = Alignment.Center
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(
-                    modifier = Modifier.weight(2F),
-                    content = {
-                        DateText(date = date)
-                        Spacer(modifier = Modifier.size(4.dp))
-                        Text(
-                            text = "${
-                                String.format("%.2f",
-                                    distanceToKm(distance))
-                            }km, ${kcal}kcal",
-                            style = Typography.h6
-                        )
-                    })
-                Spacer(modifier = Modifier.size(16.dp))
-                ArrowForward()
-            }
+        .fillMaxWidth(), shape = RoundedCornerShape(8.dp), elevation = 0.dp) {
+        Row(
+            modifier =
+            Modifier
+                .background(if (darkTheme) Color.Transparent else Black4)
+                .fillMaxWidth()
+                .clickable { onClick() }
+                .padding(all = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                content = {
+                    BicycleIcon()
+                },
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(if (darkTheme) PrimaryOverlayDark else PrimaryOverlay),
+                contentAlignment = Alignment.Center
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(2F),
+                content = {
+                    DateText(date = date)
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        text = "${
+                            String.format("%.2f",
+                                distanceToKm(distance))
+                        }km, ${kcal}kcal",
+                        style = Typography.h6
+                    )
+                })
+            Spacer(modifier = Modifier.size(16.dp))
+            ArrowForward()
         }
     }
 }
