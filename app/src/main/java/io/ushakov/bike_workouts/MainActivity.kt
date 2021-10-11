@@ -2,8 +2,6 @@ package io.ushakov.bike_workouts
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
@@ -31,14 +29,12 @@ import io.ushakov.bike_workouts.ui.views.first_time_setup.FirstTimeSetup
 import io.ushakov.bike_workouts.ui.views.in_workout.InWorkout
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.SAVED_DEVICE_SHARED_PREFERENCES_KEY
+import io.ushakov.bike_workouts.util.Constants.USER_ID_SHARED_PREFERENCES_KEY
 import io.ushakov.bike_workouts.util.rememberActiveWorkout
 import io.ushakov.bike_workouts.util.rememberApplication
 import kotlinx.coroutines.*
 import java.util.*
 
-/*
-TODO Setup activity calls DB and gets user and it then pass UserId here, which should be store in shared preferences
-*/
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,10 +45,9 @@ class MainActivity : ComponentActivity() {
         }
 
         // Views will avoid keyboard
-        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
 
-        //Initialize Broadcast receiver
         val workoutDataReceiver = WorkoutDataReceiver()
         workoutDataReceiver.let {
             LocalBroadcastManager.getInstance(this)
@@ -61,7 +56,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             BikeWorkoutsTheme {
-                View()
+                Root()
             }
         }
     }
@@ -73,14 +68,28 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
+    @Composable
+    fun Root() {
+        val application = rememberApplication()
+        var isFirstTimeSetupDone by remember { mutableStateOf(application.user != null) }
+        var userId by remember { mutableStateOf<Long?>(application.user?.id) }
+
+        if (!isFirstTimeSetupDone || userId == null) {
+            FirstTimeSetup { newUserId ->
+                saveUserId(newUserId)
+                userId = newUserId
+                isFirstTimeSetupDone = true
+            }
+        } else {
+            View(userId = userId!!)
+        }
+    }
+
 
     @Composable
-    fun View() {
+    fun View(userId: Long) {
         val navController = rememberNavController()
-        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val application = rememberApplication()
-
-//        requestPermissions(bluetoothAdapter = bluetoothManager.adapter)
 
         NavigateToUnfinishedWorkout(navController)
         StartWorkoutService()
@@ -94,69 +103,61 @@ class MainActivity : ComponentActivity() {
         val isPairing by HeartRateDeviceManager.getInstance().isPairing.observeAsState()
         val isDeviceConnected by HeartRateDeviceManager.getInstance().isConnected.observeAsState()
 
-
-        val isFirstTimeSetupDone = false
-
-        if (!isFirstTimeSetupDone) {
-            FirstTimeSetup()
-        } else {
-            NavHost(navController = navController, startDestination = "main") {
-                composable("main") {
-                    Main(navController, 1, isDeviceConnected ?: false) { startWorkout() }
-                }
-                composable("workout_history") {
-                    WorkoutHistory(navController, 1)
-                }
-                composable("bluetooth_settings") {
-                    BluetoothSettings(
-                        navController,
-                        isPairing = isPairing ?: false,
-                        device = pairedDevice,
-                        onDevicePair = { address ->
-                            HeartRateDeviceManager.getInstance().setupDevice(address) {}
-                        }
-                    ) {
-                        HeartRateDeviceManager.getInstance().forgetDevice()
-                        forgetSavedDevice()
+        NavHost(navController = navController, startDestination = "main") {
+            composable("main") {
+                Main(navController, userId, isDeviceConnected ?: false) { startWorkout() }
+            }
+            composable("workout_history") {
+                WorkoutHistory(navController, userId)
+            }
+            composable("bluetooth_settings") {
+                BluetoothSettings(
+                    navController,
+                    isPairing = isPairing ?: false,
+                    device = pairedDevice,
+                    onDevicePair = { address ->
+                        HeartRateDeviceManager.getInstance().setupDevice(address) {}
                     }
+                ) {
+                    HeartRateDeviceManager.getInstance().forgetDevice()
+                    forgetSavedDevice()
                 }
-                composable("workout_details/{workoutId}",
-                    arguments = listOf(navArgument("workoutId") {
-                        type = NavType.LongType
-                    })) { backStackEntry ->
-                    WorkoutDetails(navController,
-                        workoutId = backStackEntry.arguments?.getLong("workoutId"))
-                }
-                composable("in_workout") {
-                    val activeWorkout = rememberActiveWorkout() ?: return@composable
+            }
+            composable("workout_details/{workoutId}",
+                arguments = listOf(navArgument("workoutId") {
+                    type = NavType.LongType
+                })) { backStackEntry ->
+                WorkoutDetails(navController,
+                    workoutId = backStackEntry.arguments?.getLong("workoutId"))
+            }
+            composable("in_workout") {
+                val activeWorkout = rememberActiveWorkout() ?: return@composable
 
-                    val locations by
-                    application.locationRepository.getLocationsForWorkout(activeWorkout.id)
-                        .observeAsState(listOf())
+                val locations by
+                application.locationRepository.getLocationsForWorkout(activeWorkout.id)
+                    .observeAsState(listOf())
 
-                    val heartRates by
-                    application.heartRateRepository.getHeartRatesForWorkout(activeWorkout.id)
-                        .observeAsState(listOf())
+                val heartRates by
+                application.heartRateRepository.getHeartRatesForWorkout(activeWorkout.id)
+                    .observeAsState(listOf())
 
-                    val summary by
-                    application.summaryRepository.getLiveSummaryForWorkout(activeWorkout.id)
-                        .observeAsState()
+                val summary by
+                application.summaryRepository.getLiveSummaryForWorkout(activeWorkout.id)
+                    .observeAsState()
 
-                    InWorkout(workout = activeWorkout,
-                        locations = locations,
-                        heartRates = heartRates,
-                        summary = summary,
-                        onWorkoutPauseClick = { WorkoutDataProcessor.getInstance().pauseWorkout() },
-                        onWorkoutResumeClick = {
-                            WorkoutDataProcessor.getInstance().resumeWorkout()
-                        },
-                        onWorkoutStopClick = { WorkoutDataProcessor.getInstance().stopWorkout() }
-                    )
-                }
+                InWorkout(workout = activeWorkout,
+                    locations = locations,
+                    heartRates = heartRates,
+                    summary = summary,
+                    onWorkoutPauseClick = { WorkoutDataProcessor.getInstance().pauseWorkout() },
+                    onWorkoutResumeClick = {
+                        WorkoutDataProcessor.getInstance().resumeWorkout()
+                    },
+                    onWorkoutStopClick = { WorkoutDataProcessor.getInstance().stopWorkout() }
+                )
             }
         }
     }
-
 
     private fun startWorkout() {
         CoroutineScope(Dispatchers.IO).launch {
@@ -199,6 +200,14 @@ class MainActivity : ComponentActivity() {
                 startWorkoutService()
             }
         }
+    }
+
+    private fun saveUserId(userId: Long) {
+        val sharedPreferences: SharedPreferences =
+            applicationContext.getSharedPreferences("shared", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putLong(USER_ID_SHARED_PREFERENCES_KEY, userId)
+        editor.apply()
     }
 
     private fun saveDeviceAddress(address: String) {
