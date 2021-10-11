@@ -21,7 +21,7 @@ class WorkoutApplication : Application() {
     private val applicationScope = CoroutineScope(SupervisorJob())
 
     private val database by lazy {
-        WorkoutDatabase.getDatabase(this, applicationScope)
+        WorkoutDatabase.getDatabase(this)
     }
 
     val userRepository by lazy { UserRepository(database.userDao()) }
