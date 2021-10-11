@@ -1,7 +1,6 @@
 package io.ushakov.bike_workouts.ui.components
 
 import android.location.Location.distanceBetween
-import android.util.Log
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.google.android.libraries.maps.CameraUpdateFactory
