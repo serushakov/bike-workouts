@@ -40,9 +40,7 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
         return@withContext workoutDao.deleteById(workoutId)
     }
 
-    suspend fun getWorkoutsByUserId(userId: Long) = withContext(Dispatchers.IO) {
-        return@withContext workoutDao.getWorkoutsByUserId(userId)
-    }
+    fun getWorkoutsByUserId(userId: Long) = workoutDao.getWorkoutsByUserId(userId)
 
     suspend fun getLastWorkout(userId: Long) = withContext(Dispatchers.IO) {
         return@withContext workoutDao.getLastFinishedWorkoutByUserId(userId)

@@ -20,4 +20,23 @@
     <string name="in_workout__info_row__calories__fallback">---</string>
     <string name="in_workout__info_row__elevation__fallback">--</string>
     <string name="in_workout__info_row__elevation__title">elevation</string>
+    <string name="intro__name__titile">Hello 👋</string>
+    <string name="intro__name__subtitle">How should we call you?</string>
+    <string name="intro__continue_button">Continue</string>
+    <string name="intro__name__input_label">Name</string>
+    <string name="intro__measurements__input_invalid">Input value is invalid</string>
+    <string name="intro__measurements__age_input__error">Age should be between %d and %d</string>
+    <string name="intro__measurements__weight_input__error">Weight should be between %d and %d</string>
+    <string name="intro__permissions__1_text">Almost done!\nApp requires Location permissions to save your rides and calculate calories and distances. Also, it enables Bluetooth!</string>
+    <string name="intro__permissions__1_text_re_request">App requires Location permissions to save your rides and calculate calories and distances. Also, it enables Bluetooth!</string>
+    <string name="intro__permissions__settings_button">Take me there</string>
+    <string name="intro__permissions__2__text">App requires access to location to function properly. Please go to Settings and allow BikeWorkouts to use location.</string>
+    <string name="intro__permissions__1_title">Permissions</string>
+    <string name="intro__permissions__2__title">No permissions 😕</string>
+    <string name="intro__permissions__1__button">Continue</string>
+    <string name="main__last_workout">Last workout</string>
+    <string name="main__bluetooth_icon_label">Bluetooth</string>
+    <string name="main__history_icon_label">Workout history</string>
+    <string name="main__account_icon_label">Account</string>
+
 </resources>
