@@ -45,12 +45,12 @@ interface WorkoutDao {
     //Used by main activity to show list of workout displaying summary of each workout
     @Transaction
     @Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId")
-    suspend fun getWorkoutsByUserId(userId: Long): List<WorkoutSummary>
+    fun getWorkoutsByUserId(userId: Long): LiveData<List<WorkoutSummary>>
 
     //Used by main activity to show list of workout displaying summary of each workout
     @Transaction
     @Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId AND finishAt is not null ORDER BY id DESC LIMIT 1")
-    suspend fun getLastFinishedWorkoutByUserId(userId: Long): WorkoutSummary
+    suspend fun getLastFinishedWorkoutByUserId(userId: Long): WorkoutSummary?
 
     @Transaction
     @Query("SELECT * FROM workout WHERE workout.id = :id")

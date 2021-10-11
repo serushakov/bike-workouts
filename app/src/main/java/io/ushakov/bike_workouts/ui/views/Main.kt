@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
@@ -26,12 +27,10 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.maps.model.LatLng
 import io.ushakov.bike_workouts.MainActivity
+import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.WorkoutSummary
-import io.ushakov.bike_workouts.ui.components.SectionTitle
-import io.ushakov.bike_workouts.ui.components.ThemedTopAppBar
-import io.ushakov.bike_workouts.ui.components.WorkoutColumnItem
-import io.ushakov.bike_workouts.ui.components.WorkoutMap
+import io.ushakov.bike_workouts.ui.components.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -90,18 +89,18 @@ fun MainAppBar(navController: NavController, deviceConnected: Boolean) {
     ThemedTopAppBar(
         navigationIcon = {
             IconButton(onClick = { }) {
-                Icon(Icons.Default.AccountCircle, "Account")
+                Icon(Icons.Default.AccountCircle, stringResource(R.string.main__account_icon_label))
             }
         },
         title = {},
         actions = {
             IconButton(onClick = { navController.navigate("workout_history") }) {
-                Icon(Icons.Default.History, "Workout history")
+                Icon(Icons.Default.History, stringResource(R.string.main__history_icon_label))
             }
 
             IconButton(onClick = { navController.navigate("bluetooth_settings") }) {
                 Icon(Icons.Default.Bluetooth,
-                    "Bluetooth",
+                    stringResource(R.string.main__bluetooth_icon_label),
                     tint = if (deviceConnected) Color.Green else Color.Unspecified)
             }
         },
@@ -114,18 +113,31 @@ fun LastWorkoutItem(navController: NavController, userId: Long) {
     val application = LocalContext.current.applicationContext as WorkoutApplication
 
     var lastWorkout by remember { mutableStateOf<WorkoutSummary?>(null) }
+    var noLastWorkout by remember { mutableStateOf(false) }
 
     LaunchedEffect(userId) {
         lastWorkout = withContext(Dispatchers.IO) {
-            application.workoutRepository.getLastWorkout(userId)
+            val workout = application.workoutRepository.getLastWorkout(userId)
+
+            if (workout == null) {
+                noLastWorkout = true
+            }
+
+            workout
         }
     }
 
     val workout = lastWorkout?.workout
     val summary = lastWorkout?.summary
+
+    if (noLastWorkout) {
+        FirstWorkoutBanner()
+        return
+    }
+
     if (workout == null || summary == null) return
 
-    SectionTitle(text = "Last workout")
+    SectionTitle(text = stringResource(R.string.main__last_workout))
     WorkoutColumnItem(date = workout.startAt,
         distance = summary.distance,
         kcal = summary.kiloCalories) {

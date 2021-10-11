@@ -5,9 +5,9 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -16,29 +16,19 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.WorkoutApplication
-import io.ushakov.bike_workouts.db.entity.WorkoutSummary
 import io.ushakov.bike_workouts.ui.components.ThemedTopAppBar
 import io.ushakov.bike_workouts.ui.components.WorkoutList
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 @Composable
 fun WorkoutHistory(
     navController: NavController,
     userId: Long,
 ) {
-    val (workoutList, setWorkoutList) = remember { mutableStateOf<List<WorkoutSummary>?>(null) }
-
     val application = LocalContext.current.applicationContext as WorkoutApplication
-
-    LaunchedEffect(userId) {
-        val workoutsByUserId = async(Dispatchers.IO) {
-            application.workoutRepository.getWorkoutsByUserId(userId)
-        }
-
-        setWorkoutList(workoutsByUserId.await())
-    }
+    val workoutList by application.workoutRepository.getWorkoutsByUserId(userId).observeAsState()
+    val scope = rememberCoroutineScope()
 
     Surface(
         modifier = Modifier
@@ -49,9 +39,14 @@ fun WorkoutHistory(
         ) {
             if (workoutList != null) {
                 WorkoutList(
-                    workoutSummaryList = workoutList,
-                    onSelected = { workoutSummary ->
+                    workoutSummaryList = workoutList!!,
+                    onSelect = { workoutSummary ->
                         navController.navigate("workout_details/${workoutSummary.workout!!.id}")
+                    },
+                    onDelete = { workoutId ->
+                        scope.launch {
+                            application.workoutRepository.deleteById(workoutId = workoutId)
+                        }
                     }
                 )
             }

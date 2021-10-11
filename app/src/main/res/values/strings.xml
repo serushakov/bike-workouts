@@ -34,5 +34,9 @@
     <string name="intro__permissions__1_title">Permissions</string>
     <string name="intro__permissions__2__title">No permissions 😕</string>
     <string name="intro__permissions__1__button">Continue</string>
+    <string name="main__last_workout">Last workout</string>
+    <string name="main__bluetooth_icon_label">Bluetooth</string>
+    <string name="main__history_icon_label">Workout history</string>
+    <string name="main__account_icon_label">Account</string>
 
 </resources>
