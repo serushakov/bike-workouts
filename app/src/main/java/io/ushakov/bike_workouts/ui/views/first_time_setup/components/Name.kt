@@ -1,4 +1,4 @@
-package io.ushakov.bike_workouts.ui.views.first_time_setup
+package io.ushakov.bike_workouts.ui.views.first_time_setup.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -66,7 +66,7 @@ fun Name(initialName: String?, onNameSubmit: (name: String) -> Unit) {
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
                     Text(
-                        text = stringResource(R.string.intro__continue_button)
+                        text = stringResource(R.string.intro__continue_button).uppercase()
                     )
                 }
             }
