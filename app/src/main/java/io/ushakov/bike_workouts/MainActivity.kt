@@ -172,9 +172,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    //FIXME: When App starts for the first time and after user is created, If we press start button,
+    // this function gets call before WorkoutDataProcessor is initialized. In other words, WorkoutApplication.onCreate()
+    // does not gets call.
     private fun startWorkout() {
         CoroutineScope(Dispatchers.IO).launch {
             val user = (application as WorkoutApplication).userRepository.getUserById(1)
+
+            Log.d("DBG", "Getting WorkoutDataProcessor instance")
 
             WorkoutDataProcessor.getInstance()
                 .createWorkout(user, "workout title", 5)

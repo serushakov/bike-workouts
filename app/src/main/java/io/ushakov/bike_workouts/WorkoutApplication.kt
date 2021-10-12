@@ -5,6 +5,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.SharedPreferences
+import android.util.Log
 import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.db.WorkoutDatabase
 import io.ushakov.bike_workouts.db.entity.User
@@ -34,17 +35,28 @@ class WorkoutApplication : Application() {
 
     // Used by workout service
     override fun onCreate() {
+        Log.d("DBG", "WorkoutApplication onCreate() get called")
+
         super.onCreate()
         HeartRateDeviceManager.initialize(this)
         // Has to be blocking because it should initialize before the rest
         // of the application
 
+        //FIXME On first start this userId gets null from preferences and it does not allow
+        // WorkoutDataProcessor to initialize while MainActivity calls WorkoutDataProcessor
+        // later which is null
         val userId = getSavedUserId()
+        Log.d("DBG", "User is $userId")
 
         if (userId != null) {
             runBlocking {
+                // This request goes into coroutine, user might be null
                 user = userRepository.getUserById(userId)
-                if (user == null) return@runBlocking
+                if (user == null) {
+                    Log.d("DBG", "User is null in Workout App class")
+
+                    return@runBlocking
+                }
 
                 initializeWorkoutDataProcessor(user!!)
             }
@@ -54,6 +66,7 @@ class WorkoutApplication : Application() {
 
 
     private suspend fun initializeWorkoutDataProcessor(user: User) {
+        Log.d("DBG", "Initializing WorkoutDataProcessor in Workout App class")
         WorkoutDataProcessor.initialize(
             workoutRepository = workoutRepository,
             locationRepository = locationRepository,
