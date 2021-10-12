@@ -32,7 +32,6 @@ This project is the outcome of a school course where we learn to develop android
 1. This application has been written in Android Studio using Kotlin.
 1. Clean codebase for easy modification and usage.
 
-#### NOTE 1 :- This application has only been tested with expo client so no testing have been done for native android and iPhone.
 
 ## Prerequisite
 
