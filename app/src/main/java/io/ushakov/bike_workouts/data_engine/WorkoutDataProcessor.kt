@@ -124,6 +124,7 @@ class WorkoutDataProcessor(
     }
 
     fun createWorkout(user: User, title: String, type: Int) {
+        totalWorkoutDuration = 0L
         Log.d("DBG", "Adding workout to DB, userId: ${user.id}, title: $title, type: $type")
 
         workoutUser = user
