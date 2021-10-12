@@ -118,9 +118,10 @@ class WorkoutDataProcessor(
 
     }
 
-    fun restoreWorkout(user: User, workout: Workout, summary: Summary) {
+    fun restoreWorkout(user: User, workout: Workout, summary: Summary, lastDuration: Duration) {
         workoutUser = user
         activeWorkout = workout
+        activeDuration = lastDuration
 
     }
 
