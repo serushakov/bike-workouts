@@ -118,13 +118,22 @@ class WorkoutDataProcessor(
 
     }
 
-    fun restoreWorkout(user: User, workout: Workout, summary: Summary) {
+    suspend fun restoreWorkout(user: User, workout: Workout, summary: Summary, lastDuration: Duration?) {
         workoutUser = user
         activeWorkout = workout
+        activeDuration = lastDuration
+        totalWorkoutDuration = getWorkoutTotalDuration()
+        Log.d("DBG", "On restore")
+        Log.d("DBG", "workoutUser $workoutUser")
+        Log.d("DBG", "activeWorkout $activeWorkout")
+        Log.d("DBG", "activeDuration $activeDuration")
+        Log.d("DBG", "totalWorkoutDuration $totalWorkoutDuration")
 
     }
 
     fun createWorkout(user: User, title: String, type: Int) {
+        totalWorkoutDuration = 0L
+
         Log.d("DBG", "Adding workout to DB, userId: ${user.id}, title: $title, type: $type")
 
         workoutUser = user
@@ -177,16 +186,19 @@ class WorkoutDataProcessor(
             }
 
             totalWorkoutDuration = getWorkoutTotalDuration()
-            //Log.d("DBG", "Total workout duration when paused: $totalWorkoutDuration")
+            Log.d("DBG", "Total workout duration when paused: $totalWorkoutDuration")
 
             calculateCalories(totalWorkoutDuration)
 
             Log.d("DBG", "Workout paused")
         }
+        //totalWorkoutDuration = 0L
+
     }
 
     fun resumeWorkout() {
         val workout = activeWorkout ?: return
+        //totalWorkoutDuration = 0L
 
         coroutineScope.launch(Dispatchers.IO) {
             workoutRepository.setWorkoutStatus(workout.id, true)
@@ -205,16 +217,16 @@ class WorkoutDataProcessor(
         val onGoingDuration = activeDuration ?: return
 
         CoroutineScope(Dispatchers.IO).launch {
-            onGoingDuration.stopAt = Date()
+            //onGoingDuration.stopAt = Date()
             //TODO remove async after feature is tested
-            val updateDurationJob = async { durationRepository.update(onGoingDuration) }
-            if (updateDurationJob.await() > 0) {
-                //Log.d("DBG", "Duration updated at Stop")
-            } else {
-                //Log.d("DBG", "Failed to update Duration")
-            }
-            getWorkoutTotalDuration()
-            //Log.d("DBG", "Total workout duration when stoped: $totalWorkoutDuration")
+            //val updateDurationJob = async { durationRepository.update(onGoingDuration) }
+            //if (updateDurationJob.await() > 0) {
+            //    Log.d("DBG", "Duration updated at Stop")
+            //} else {
+            //    Log.d("DBG", "Failed to update Duration")
+            //}
+            //totalWorkoutDuration = getWorkoutTotalDuration()
+            Log.d("DBG", "Total workout duration when stoped: $totalWorkoutDuration")
 
             if (totalWorkoutDuration > Constants.MINIMUM_WORKOUT_DURATION_MS) {
 
@@ -224,7 +236,7 @@ class WorkoutDataProcessor(
                 updateSummary()
 
             } else {
-                //Log.d("DBG", "Deleting workout")
+                Log.d("DBG", "Deleting workout")
                 CoroutineScope(Dispatchers.IO).launch {
                     workoutRepository.deleteById(workout.id)
                 }
@@ -234,7 +246,7 @@ class WorkoutDataProcessor(
 
         activeWorkout = null
         currentWorkoutDistance = 0.0
-        totalWorkoutDuration = 0L
+        //totalWorkoutDuration = 0L
         //Log.d("DBG", "Stopping workout")
     }
 
@@ -263,6 +275,7 @@ class WorkoutDataProcessor(
 
         workoutCalories =
             workoutCaloriesProcessor.getCalories(user, workout, workoutDurationInMicroSeconds)
+        Log.d("DBG", "Calories: $workoutCalories")
     }
 
     private suspend fun getWorkoutTotalDuration() = withContext(Dispatchers.IO) {
@@ -273,15 +286,17 @@ class WorkoutDataProcessor(
         }
 
         val workoutDurationList = workoutDurationJob.await()
+        Log.d("DBG", "workoutDurationList size ${workoutDurationList?.duration?.size}")
 
+        var workoutDuration = 0L
         workoutDurationList?.duration?.forEach {
-            //Log.d("DBG", "durations end time ${it.stopAt}")
+            Log.d("DBG", "durations end time ${it.stopAt}")
 
-            totalWorkoutDuration += it.stopAt?.time?.minus(it.startAt.time)!!
+            workoutDuration += it.stopAt?.time?.minus(it.startAt.time)!!
         }
-        //Log.d("DBG", "Total work out duration ${totalWorkoutDuration / 1000}")
+        Log.d("DBG", "Total work out duration from getWorkoutTotalDuration ${workoutDuration / 1000}")
 
-        return@withContext totalWorkoutDuration
+        return@withContext workoutDuration
     }
 
     fun calculateTime(): String {

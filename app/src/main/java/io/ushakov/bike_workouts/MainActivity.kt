@@ -65,6 +65,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         stopWorkoutService()
+        WorkoutDataProcessor.getInstance().pauseWorkout()
         //TODO Remember to remove it. Dummy HR readings are running in this scope.
         CoroutineScope(Dispatchers.IO).cancel("MainActivity is closed")
         super.onDestroy()

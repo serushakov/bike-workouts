@@ -5,7 +5,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.SharedPreferences
-import android.util.Log
 import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.db.WorkoutDatabase
 import io.ushakov.bike_workouts.db.entity.User
@@ -69,16 +68,19 @@ class WorkoutApplication : Application() {
             coroutineScope = applicationScope
         )
 
-        val activeWorkout = workoutRepository.getUnfinishedWorkout()
+        val workoutDuration = workoutRepository.getUnfinishedWorkout()
 
-        if (activeWorkout != null) {
+        if (workoutDuration != null) {
+            val activeWorkout = workoutDuration.workout
+            val activeDuration = workoutDuration.duration?.last()
+            if (activeWorkout != null ) {
+                val summary = summaryRepository.getSummaryForWorkout(activeWorkout.id)
 
-            val summary = summaryRepository.getSummaryForWorkout(activeWorkout.id)
-
-            if (summary == null) {
-                workoutRepository.delete(workout = activeWorkout)
-            } else {
-                WorkoutDataProcessor.getInstance().restoreWorkout(user, activeWorkout, summary)
+                if (summary == null) {
+                    workoutRepository.delete(workout = activeWorkout)
+                } else {
+                    WorkoutDataProcessor.getInstance().restoreWorkout(user, activeWorkout, summary, activeDuration)
+                }
             }
         }
 

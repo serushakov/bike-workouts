@@ -21,7 +21,7 @@ interface WorkoutDao {
     fun getLiveUnfinishedWorkout(): LiveData<Workout>
 
     @Query("SELECT * FROM workout WHERE workout.finishAt is null LIMIT 1")
-    suspend fun getUnfinishedWorkout(): Workout?
+    suspend fun getUnfinishedWorkout(): WorkoutDuration?
 
     @Delete
     fun delete(workout: Workout)
