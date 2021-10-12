@@ -236,7 +236,7 @@ class WorkoutDataProcessor(
             } else {
                 //Log.d("DBG", "Failed to update Duration")
             }
-            totalWorkoutDuration = getWorkoutTotalDuration()
+            getWorkoutTotalDuration()
             //Log.d("DBG", "Total workout duration when stoped: $totalWorkoutDuration")
             /*val workoutDurationJob = async {
                 workoutRepository.getWorkoutDurations(workout.id)
@@ -356,7 +356,7 @@ class WorkoutDataProcessor(
         if (workoutDurationList != null) {
             //Log.d("DBG", "No of durations ${workoutDurationList.duration?.size}")
         }
-        var totalWorkoutDuration: Long = 0L
+        //var totalWorkoutDuration: Long = 0L
         workoutDurationList?.duration?.forEach {
             //Log.d("DBG", "durations end time ${it.stopAt}")
 
