@@ -33,40 +33,33 @@ class WorkoutApplication : Application() {
 
     var user: User? = null
 
-    // Used by workout service
     override fun onCreate() {
-        Log.d("DBG", "WorkoutApplication onCreate() get called")
-
         super.onCreate()
-        HeartRateDeviceManager.initialize(this)
-        // Has to be blocking because it should initialize before the rest
-        // of the application
 
-        //FIXME On first start this userId gets null from preferences and it does not allow
-        // WorkoutDataProcessor to initialize while MainActivity calls WorkoutDataProcessor
-        // later which is null
+        HeartRateDeviceManager.initialize(this)
         val userId = getSavedUserId()
-        Log.d("DBG", "User is $userId")
 
         if (userId != null) {
-            runBlocking {
-                // This request goes into coroutine, user might be null
-                user = userRepository.getUserById(userId)
-                if (user == null) {
-                    Log.d("DBG", "User is null in Workout App class")
-
-                    return@runBlocking
-                }
-
-                initializeWorkoutDataProcessor(user!!)
-            }
+            initializeWorkoutDataProcessor(userId)
         }
         createNotificationChannel()
     }
 
+    fun initializeWorkoutDataProcessor(userId: Long) {
+        // Has to be blocking because it should initialize before the rest
+        // of the application
+        runBlocking {
+            // This request goes into coroutine, user might be null
+            user = userRepository.getUserById(userId)
+            if (user == null) {
+                return@runBlocking
+            }
+
+            initializeWorkoutDataProcessor(user!!)
+        }
+    }
 
     private suspend fun initializeWorkoutDataProcessor(user: User) {
-        Log.d("DBG", "Initializing WorkoutDataProcessor in Workout App class")
         WorkoutDataProcessor.initialize(
             workoutRepository = workoutRepository,
             locationRepository = locationRepository,

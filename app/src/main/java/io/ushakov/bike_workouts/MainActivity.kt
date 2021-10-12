@@ -87,6 +87,7 @@ class MainActivity : ComponentActivity() {
                 saveUserId(newUserId)
                 userId = newUserId
                 isFirstTimeSetupDone = true
+                application.initializeWorkoutDataProcessor(newUserId)
             }
         } else if (!locationPermissionState.hasPermission && !arePermissionsReallyGranted) {
             // Re-request permissions if app does not have them any more
