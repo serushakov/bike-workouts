@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This project is the outcome of a school course where we learn to develop android application. At the end of the course we are given 4-weeks time to develop an Android app that will reflect our learning from the course.
+This project is the outcome of a school course where we learn to develop android applications. At the end of the course we are given 4-weeks time to develop an Android app that will reflect our learning from the course.
 
 ## Technologies
 
@@ -54,8 +54,6 @@ After installing Android Studio successfully in your system, you can proceed.
 1. Head over to [this](https://developer.android.com/studio/run) link for further instructions on how to run project.
 
 #### NOTE: Google Play is need in order to run this app so install it on your device (either device real or emulator)
-
-## Application structure in general
 
 ## Database schema
 <img src="screens/database-schema.png" width="800">
