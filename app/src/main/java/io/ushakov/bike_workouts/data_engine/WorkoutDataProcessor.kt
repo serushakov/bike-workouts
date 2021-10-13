@@ -115,7 +115,12 @@ class WorkoutDataProcessor(
 
     }
 
-    suspend fun restoreWorkout(user: User, workout: Workout, summary: Summary, lastDuration: Duration?) {
+    suspend fun restoreWorkout(
+        user: User,
+        workout: Workout,
+        summary: Summary,
+        lastDuration: Duration?
+    ) {
         workoutUser = user
         activeWorkout = workout
         activeDuration = lastDuration
@@ -125,12 +130,7 @@ class WorkoutDataProcessor(
 
     fun createWorkout(user: User, title: String, type: Int) {
 
-        //TODO create a function resetAllParameters()
-        activeWorkout = null
-        activeDuration = null
-        totalWorkoutDuration = 0L
-        currentWorkoutDistance= 0.0
-        workoutCalories = 0
+        resetAllParameters()
 
         workoutUser = user
 
@@ -195,8 +195,6 @@ class WorkoutDataProcessor(
                 Log.d("DBG", "Workout paused")
             }
         }
-        //totalWorkoutDuration = 0L
-
     }
 
     fun resumeWorkout() {
@@ -228,19 +226,15 @@ class WorkoutDataProcessor(
 
                 calculateCalories(totalWorkoutDuration)
                 updateSummary()
-
             } else {
                 Log.d("DBG", "Deleting workout")
                 CoroutineScope(Dispatchers.IO).launch {
                     workoutRepository.deleteById(workout.id)
                 }
             }
-
         }
 
-        activeWorkout = null
-        currentWorkoutDistance = 0.0
-
+        resetAllParameters()
     }
 
 
@@ -286,7 +280,10 @@ class WorkoutDataProcessor(
 
             workoutDuration += it.stopAt?.time?.minus(it.startAt.time)!!
         }
-        Log.d("DBG", "Total work out duration from getWorkoutTotalDuration ${workoutDuration / 1000}")
+        Log.d(
+            "DBG",
+            "Total work out duration from getWorkoutTotalDuration ${workoutDuration / 1000}"
+        )
 
         return@withContext workoutDuration
     }
@@ -308,5 +305,13 @@ class WorkoutDataProcessor(
             diff.minutes.toString().padStart(2, '0')
         }:${diff.seconds.toString().padStart(2, '0')}"
 
+    }
+
+    private fun resetAllParameters() {
+        activeWorkout = null
+        activeDuration = null
+        totalWorkoutDuration = 0L
+        currentWorkoutDistance = 0.0
+        workoutCalories = 0
     }
 }
