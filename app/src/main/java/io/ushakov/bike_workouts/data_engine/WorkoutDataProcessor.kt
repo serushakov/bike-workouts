@@ -31,8 +31,6 @@ class WorkoutDataProcessor(
     private var currentWorkoutDistance: Double? = null
     private var workoutCalories: Int = 0
 
-    //private var lastSpeed: Float? = null
-
     companion object {
         private var instance: WorkoutDataProcessor? = null
 
@@ -85,14 +83,9 @@ class WorkoutDataProcessor(
         if (speed < 1 /*&& lastSpeed == 0f*/) {
             Log.d("DBG", "Speed is less then 1")
             return
-        } /*else if (speed < 1 && lastSpeed != 0f) {
-            lastSpeed = 0f
-            speed = 0f
-        }*/
-        //lastSpeed = speed
+        }
 
-        Log.d("DBG", "currentWorkoutDistance: $currentWorkoutDistance meters")
-        Log.d("DBG", "lastSpeed: $speed meters/whatever")
+        Log.d("DBG", "speed: $speed meters/whatever")
 
         // Insert location
         coroutineScope.launch(Dispatchers.IO) {
@@ -127,38 +120,17 @@ class WorkoutDataProcessor(
         activeWorkout = workout
         activeDuration = lastDuration
         totalWorkoutDuration = getWorkoutTotalDuration()
-        Log.d("DBG", "On RESTORE Workout")
-        Log.d("DBG", "workoutUser $workoutUser")
-        Log.d("DBG", "activeWorkout $activeWorkout")
-        Log.d("DBG", "activeDuration $activeDuration")
-        Log.d("DBG", "totalWorkoutDuration $totalWorkoutDuration")
-        Log.d("DBG", "currentWorkoutDistance $currentWorkoutDistance")
-        Log.d("DBG", "workoutCalories $workoutCalories")
-        //Log.d("DBG", "lastSpeed $lastSpeed")
 
     }
 
     fun createWorkout(user: User, title: String, type: Int) {
 
         //TODO create a function resetAllParameters()
-        totalWorkoutDuration = 0L
-        Log.d("DBG", "On CREATE Workout")
-        Log.d("DBG", "workoutUser $workoutUser")
-        Log.d("DBG", "activeWorkout $activeWorkout")
-        Log.d("DBG", "activeDuration $activeDuration")
-        Log.d("DBG", "totalWorkoutDuration $totalWorkoutDuration")
-        Log.d("DBG", "currentWorkoutDistance $currentWorkoutDistance")
-        Log.d("DBG", "workoutCalories $workoutCalories")
-        //Log.d("DBG", "lastSpeed $lastSpeed")
-
         activeWorkout = null
         activeDuration = null
         totalWorkoutDuration = 0L
         currentWorkoutDistance= 0.0
         workoutCalories = 0
-        //lastSpeed = 0.0f
-
-        Log.d("DBG", "Adding workout to DB, userId: ${user.id}, title: $title, type: $type")
 
         workoutUser = user
 
@@ -193,14 +165,7 @@ class WorkoutDataProcessor(
     }
 
     fun pauseWorkout() {
-        Log.d("DBG", "On PAUSE Workout")
-        Log.d("DBG", "workoutUser $workoutUser")
-        Log.d("DBG", "activeWorkout $activeWorkout")
-        Log.d("DBG", "activeDuration $activeDuration")
-        Log.d("DBG", "totalWorkoutDuration $totalWorkoutDuration")
-        Log.d("DBG", "currentWorkoutDistance $currentWorkoutDistance")
-        Log.d("DBG", "workoutCalories $workoutCalories")
-        //Log.d("DBG", "lastSpeed $lastSpeed")
+
         val workout = activeWorkout ?: return
         val onGoingDuration = activeDuration ?: return
 
@@ -235,16 +200,8 @@ class WorkoutDataProcessor(
     }
 
     fun resumeWorkout() {
-        Log.d("DBG", "On RESUME Workout")
-        Log.d("DBG", "workoutUser $workoutUser")
-        Log.d("DBG", "activeWorkout $activeWorkout")
-        Log.d("DBG", "activeDuration $activeDuration")
-        Log.d("DBG", "totalWorkoutDuration $totalWorkoutDuration")
-        Log.d("DBG", "currentWorkoutDistance $currentWorkoutDistance")
-        Log.d("DBG", "workoutCalories $workoutCalories")
-        //Log.d("DBG", "lastSpeed $lastSpeed")
+
         val workout = activeWorkout ?: return
-        //totalWorkoutDuration = 0L
 
         coroutineScope.launch(Dispatchers.IO) {
             workoutRepository.setWorkoutStatus(workout.id, true)
@@ -253,33 +210,16 @@ class WorkoutDataProcessor(
             val durationId = durationRepository.insert(newDuration)
             newDuration.id = durationId
             activeDuration = newDuration
-            //Log.d("DBG", "Duration created for resume workout with $durationId id")
-            //Log.d("DBG", "Workout resumed")
         }
     }
 
     fun stopWorkout() {
-        Log.d("DBG", "On STOP Workout")
-        Log.d("DBG", "workoutUser $workoutUser")
-        Log.d("DBG", "activeWorkout $activeWorkout")
-        Log.d("DBG", "activeDuration $activeDuration")
-        Log.d("DBG", "totalWorkoutDuration $totalWorkoutDuration")
-        Log.d("DBG", "currentWorkoutDistance $currentWorkoutDistance")
-        Log.d("DBG", "workoutCalories $workoutCalories")
-        //Log.d("DBG", "lastSpeed $lastSpeed")
+
         val workout = activeWorkout ?: return
         val onGoingDuration = activeDuration ?: return
 
         CoroutineScope(Dispatchers.IO).launch {
-            //onGoingDuration.stopAt = Date()
-            //TODO remove async after feature is tested
-            //val updateDurationJob = async { durationRepository.update(onGoingDuration) }
-            //if (updateDurationJob.await() > 0) {
-            //    Log.d("DBG", "Duration updated at Stop")
-            //} else {
-            //    Log.d("DBG", "Failed to update Duration")
-            //}
-            //totalWorkoutDuration = getWorkoutTotalDuration()
+
             Log.d("DBG", "Total workout duration when stoped: $totalWorkoutDuration")
 
             if (totalWorkoutDuration > Constants.MINIMUM_WORKOUT_DURATION_MS) {
@@ -300,8 +240,7 @@ class WorkoutDataProcessor(
 
         activeWorkout = null
         currentWorkoutDistance = 0.0
-        //totalWorkoutDuration = 0L
-        //Log.d("DBG", "Stopping workout")
+
     }
 
 
@@ -309,7 +248,6 @@ class WorkoutDataProcessor(
         val workout = activeWorkout ?: return
 
         coroutineScope.launch(Dispatchers.IO) {
-            //Log.d("WorkoutDataProcessor", "updating summary with distance $currentWorkoutDistance")
             val summary = summaryRepository.getSummaryForWorkout(workout.id) ?: return@launch
 
             summaryRepository.update(
