@@ -12,7 +12,7 @@ This project is the outcome of a school course where we learn to develop android
 1. [Android Service](https://developer.android.com/guide/components/services)
 1. [Android Broadcast Receiver](https://developer.android.com/guide/components/broadcasts)
 1. [Android Fuse Location Provider API](https://developers.google.com/location-context/fused-location-provider/)
-1. [Room]()
+1. [Room](https://developer.android.com/jetpack/androidx/releases/room)
 1. [What else?]
 
 
