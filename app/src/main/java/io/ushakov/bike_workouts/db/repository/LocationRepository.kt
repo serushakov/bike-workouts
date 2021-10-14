@@ -14,4 +14,6 @@ class LocationRepository(val locationDao: LocationDao) {
     fun getLocationsForWorkout(workoutId: Long): LiveData<List<Location>> {
         return locationDao.getLocationsForWorkout(workoutId = workoutId)
     }
+
+    suspend fun getWorkoutAverageSpeed(workoutId: Long) = locationDao.getWorkoutAverageSpeed(workoutId)
 }

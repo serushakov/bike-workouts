@@ -30,6 +30,7 @@ class WorkoutDataProcessor(
 
     private var currentWorkoutDistance: Double? = null
     private var workoutCalories: Int = 0
+    private var lastSpeed: Float? = null
 
     companion object {
         private var instance: WorkoutDataProcessor? = null
@@ -60,7 +61,7 @@ class WorkoutDataProcessor(
     fun processHeartRate(heartRateValue: Int) {
         val workout = activeWorkout ?: return
         val timestamp = Date()
-        //Write HR
+
         coroutineScope.launch(Dispatchers.IO) {
             heartRateRepository.insert(
                 HeartRate(
@@ -77,24 +78,23 @@ class WorkoutDataProcessor(
         val timestamp = Date()
 
         var speed = location.speed
-        Log.d("DBG", "Location: ${location.speed}")
 
         // Ignore locations when standing in same place
-        if (speed < 1 /*&& lastSpeed == 0f*/) {
-            Log.d("DBG", "Speed is less then 1")
+        if (speed < 1 && lastSpeed == 0f) {
             return
+        } else if (speed < 1) {
+            speed = 0f
+            lastSpeed = 0f
+        } else {
+            lastSpeed = speed
         }
 
-        Log.d("DBG", "speed: $speed meters/whatever")
 
-        // Insert location
         coroutineScope.launch(Dispatchers.IO) {
-
             if (currentWorkoutDistance == null) {
                 val summary = summaryRepository.getSummaryForWorkout(workout.id)
                 currentWorkoutDistance = summary?.distance ?: 0.0
             }
-
 
             currentWorkoutDistance =
                 workoutDistanceProcessor.latestDistance(location, currentWorkoutDistance!!)
@@ -109,7 +109,7 @@ class WorkoutDataProcessor(
                     timestamp
                 )
             )
-            //update Summary table
+
             updateSummary()
         }
 
@@ -119,23 +119,20 @@ class WorkoutDataProcessor(
         user: User,
         workout: Workout,
         summary: Summary,
-        lastDuration: Duration?
+        lastDuration: Duration?,
     ) {
         workoutUser = user
         activeWorkout = workout
         activeDuration = lastDuration
         totalWorkoutDuration = getWorkoutTotalDuration()
-
+        currentWorkoutDistance = summary.distance
     }
 
     fun createWorkout(user: User, title: String, type: Int) {
-
         resetAllParameters()
-
         workoutUser = user
 
         coroutineScope.launch(Dispatchers.IO) {
-
             val workout = Workout(
                 userId = user.id,
                 title = title,
@@ -144,12 +141,9 @@ class WorkoutDataProcessor(
             )
 
             val workoutId = workoutRepository.insert(workout)
-
             workout.id = workoutId
-
             activeWorkout = workout
 
-            //Create Summary
             summaryRepository.insert(
                 Summary(
                     workoutId = workoutId,
@@ -165,34 +159,21 @@ class WorkoutDataProcessor(
     }
 
     fun pauseWorkout() {
-
         val workout = activeWorkout ?: return
         val onGoingDuration = activeDuration ?: return
 
         if (onGoingDuration.stopAt == null) {
-            Log.d("DBG", "onGoingDuration.stopAt: ${onGoingDuration.stopAt}")
-
             coroutineScope.launch(Dispatchers.IO) {
-
-
                 workoutRepository.setWorkoutStatus(workout.id, false)
 
                 onGoingDuration.stopAt = Date()
                 activeDuration!!.stopAt = Date()
-                //TODO remove async after feature is tested
-                val updateDurationJob = async { durationRepository.update(onGoingDuration) }
-                if (updateDurationJob.await() > 0) {
-                    //Log.d("DBG", "Duration updated at pause")
-                } else {
-                    //Log.d("DBG", "Failed to update Duration")
-                }
+                durationRepository.update(onGoingDuration)
+
+                val averageSpeed = locationRepository.getWorkoutAverageSpeed(workout.id)
 
                 totalWorkoutDuration = getWorkoutTotalDuration()
-                Log.d("DBG", "Total workout duration when paused: $totalWorkoutDuration")
-
-                calculateCalories(totalWorkoutDuration)
-
-                Log.d("DBG", "Workout paused")
+                calculateCalories(currentWorkoutDistance ?: 0.0, averageSpeed ?: 0.0)
             }
         }
     }
@@ -211,30 +192,37 @@ class WorkoutDataProcessor(
         }
     }
 
-    fun stopWorkout() {
+    suspend fun stopWorkout(): Long? {
+        val workout = activeWorkout ?: return null
+        val onGoingDuration = activeDuration ?: return null
 
-        val workout = activeWorkout ?: return
-        val onGoingDuration = activeDuration ?: return
+        return withContext(Dispatchers.IO) {
+            val averageSpeed = locationRepository.getWorkoutAverageSpeed(workout.id) ?: 0.0
+            val workoutDistance = currentWorkoutDistance ?: 0.0
+            var shouldReturnWorkoutId = true
 
-        CoroutineScope(Dispatchers.IO).launch {
+            val actualWorkoutDuration =
+                if (averageSpeed == 0.0) 0.0 else workoutDistance / averageSpeed
 
-            Log.d("DBG", "Total workout duration when stoped: $totalWorkoutDuration")
-
-            if (totalWorkoutDuration > Constants.MINIMUM_WORKOUT_DURATION_MS) {
-
+            // Workout should be of minimum length in order to be saved
+            if (actualWorkoutDuration > Constants.MINIMUM_WORKOUT_DURATION_S) {
                 workoutRepository.captureWorkoutFinishDate(workout.id, onGoingDuration.stopAt!!)
 
-                calculateCalories(totalWorkoutDuration)
-                updateSummary()
-            } else {
-                Log.d("DBG", "Deleting workout")
-                CoroutineScope(Dispatchers.IO).launch {
-                    workoutRepository.deleteById(workout.id)
+                locationRepository.getWorkoutAverageSpeed(workout.id)?.let {
+                    calculateCalories(currentWorkoutDistance ?: 0.0, it)
                 }
+                updateSummary()
+
+            } else {
+                workoutRepository.deleteById(workout.id)
+                shouldReturnWorkoutId = false
             }
+
+            resetAllParameters()
+
+            return@withContext if(shouldReturnWorkoutId) workout.id else null
         }
 
-        resetAllParameters()
     }
 
 
@@ -255,50 +243,41 @@ class WorkoutDataProcessor(
         }
     }
 
-    private fun calculateCalories(workoutDurationInMicroSeconds: Long) {
+    private fun calculateCalories(distance: Double, averageSpeed: Double) {
         val workout = activeWorkout ?: return
         val user = workoutUser ?: return
 
+        /**
+         * This way we calculate actual cycling time. If we take
+         * workout duration directly, the calories will be inaccurate.
+         *
+         * distance is calculated in meters, averageSpeed is m/s, so cyclingDuration is seconds
+         */
+        val cyclingDuration = distance / averageSpeed
+
         workoutCalories =
-            workoutCaloriesProcessor.getCalories(user, workout, workoutDurationInMicroSeconds)
-        Log.d("DBG", "Calories: $workoutCalories")
+            workoutCaloriesProcessor.getCalories(user.weight, workout.type, cyclingDuration)
     }
 
     private suspend fun getWorkoutTotalDuration() = withContext(Dispatchers.IO) {
         val workout = activeWorkout
 
-        val workoutDurationJob = async {
-            workout?.let { workoutRepository.getWorkoutDurations(it.id) }
-        }
+        val workoutDurationList = workout?.let { workoutRepository.getWorkoutDurations(it.id) }
 
-        val workoutDurationList = workoutDurationJob.await()
-        Log.d("DBG", "workoutDurationList size ${workoutDurationList?.duration?.size}")
+        val workoutDuration: Long = workoutDurationList?.duration?.fold(0) { acc, duration ->
+            val stopTime = duration.stopAt ?: return@fold acc
 
-        var workoutDuration = 0L
-        workoutDurationList?.duration?.forEach {
-            Log.d("DBG", "durations end time ${it.stopAt}")
-
-            workoutDuration += it.stopAt?.time?.minus(it.startAt.time)!!
-        }
-        Log.d(
-            "DBG",
-            "Total work out duration from getWorkoutTotalDuration ${workoutDuration / 1000}"
-        )
+            acc?.plus(stopTime.time - duration.startAt.time)
+        } ?: 0
 
         return@withContext workoutDuration
     }
 
     fun calculateTime(): String {
-
-        var diff: DateDifference? = null
-
-        if (activeDuration?.stopAt == null) {
-            //Log.d("DBG", "activeDuration StopAt null. totalWorkoutDuration ${totalWorkoutDuration + (Date().time - activeDuration?.startAt!!.time)}")
-            diff =
-                getDifferenceBetweenDates(totalWorkoutDuration + (Date().time - activeDuration?.startAt!!.time))
+        val diff: DateDifference = if (activeDuration?.stopAt == null) {
+            getDifferenceBetweenDates(totalWorkoutDuration + (Date().time - activeDuration?.startAt!!.time))
         } else {
-            //Log.d("DBG", "activeDuration Stop not null. totalWorkoutDuration $totalWorkoutDuration activeDuration?.startAt? ${activeDuration?.startAt}")
-            diff = getDifferenceBetweenDates(totalWorkoutDuration)
+            getDifferenceBetweenDates(totalWorkoutDuration)
         }
 
         return "${diff.hours}:${
@@ -313,5 +292,6 @@ class WorkoutDataProcessor(
         totalWorkoutDuration = 0L
         currentWorkoutDistance = 0.0
         workoutCalories = 0
+        lastSpeed = null
     }
 }
