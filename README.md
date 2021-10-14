@@ -1,6 +1,6 @@
 # Bike Workouts
 
-## Desctiption
+## Description
 
 This project is the outcome of a school course where we learn to develop android applications. At the end of the course we are given 4-weeks time to develop an Android app that will reflect our learning from the course.
 
