@@ -19,7 +19,7 @@ object Constants {
     const val EXTRA_HEART_RATE = "$PACKAGE_NAME.heart-rate"
     const val HEART_DEFAULT_VALUE: Int = 0
     const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 2000
-    const val MINIMUM_WORKOUT_DURATION_MS = 1000 * 20 // 1 minute
+    const val MINIMUM_WORKOUT_DURATION_S = 20
     const val DEFAULT_WORKOUT_ID: Long = 0
     const val DEFAULT_WORKOUT_TITLE = "DEFAULT_WORKOUT_TITLE"   //TODO replace it with a suitable name later
     const val DEFAULT_WORKOUT_TYPE = "DEFAULT_WORKOUT_TYPE"
