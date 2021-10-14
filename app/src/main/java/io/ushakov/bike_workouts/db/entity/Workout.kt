@@ -77,6 +77,11 @@ data class WorkoutComplete(
         entityColumn = "workoutId"
     )
     var summary: Summary? = null,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "workoutId"
+    )
+    var duration: List<Duration>? = null
 )
 
 class WorkoutDuration {

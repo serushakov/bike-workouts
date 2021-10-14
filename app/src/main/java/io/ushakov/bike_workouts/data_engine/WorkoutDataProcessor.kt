@@ -5,7 +5,7 @@ import io.ushakov.bike_workouts.db.entity.*
 import io.ushakov.bike_workouts.db.repository.*
 import io.ushakov.bike_workouts.util.Constants
 import io.ushakov.bike_workouts.util.DateDifference
-import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
+import io.ushakov.bike_workouts.util.calculateWorkoutDuration
 import kotlinx.coroutines.*
 import java.util.*
 
@@ -219,7 +219,7 @@ class WorkoutDataProcessor(
 
             resetAllParameters()
 
-            return@withContext if(shouldReturnWorkoutId) workout.id else null
+            return@withContext if (shouldReturnWorkoutId) workout.id else null
         }
 
     }
@@ -261,22 +261,18 @@ class WorkoutDataProcessor(
     private suspend fun getWorkoutTotalDuration() = withContext(Dispatchers.IO) {
         val workout = activeWorkout
 
-        val workoutDurationList = workout?.let { workoutRepository.getWorkoutDurations(it.id) }
+        val workoutDurations =
+            workout?.let { workoutRepository.getWorkoutDurations(it.id) }?.duration
+                ?: return@withContext 0
 
-        val workoutDuration: Long = workoutDurationList?.duration?.fold(0) { acc, duration ->
-            val stopTime = duration.stopAt ?: return@fold acc
-
-            acc?.plus(stopTime.time - duration.startAt.time)
-        } ?: 0
-
-        return@withContext workoutDuration
+        return@withContext calculateWorkoutDuration(workoutDurations)
     }
 
     fun calculateTime(): String {
-        val diff: DateDifference = if (activeDuration?.stopAt == null) {
-            getDifferenceBetweenDates(totalWorkoutDuration + (Date().time - activeDuration?.startAt!!.time))
+        val diff = if (activeDuration?.stopAt == null) {
+            DateDifference.fromDuration(totalWorkoutDuration + (Date().time - activeDuration?.startAt!!.time))
         } else {
-            getDifferenceBetweenDates(totalWorkoutDuration)
+            DateDifference.fromDuration(totalWorkoutDuration)
         }
 
         return "${diff.hours}:${

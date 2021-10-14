@@ -24,9 +24,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.WorkoutApplication
+import io.ushakov.bike_workouts.db.entity.Duration
 import io.ushakov.bike_workouts.db.entity.HeartRate
 import io.ushakov.bike_workouts.db.entity.Location
 import io.ushakov.bike_workouts.db.entity.Workout
@@ -36,8 +36,9 @@ import io.ushakov.bike_workouts.ui.theme.Blue800
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlay
 import io.ushakov.bike_workouts.ui.theme.PrimaryOverlayDark
 import io.ushakov.bike_workouts.ui.theme.Typography
+import io.ushakov.bike_workouts.util.DateDifference
+import io.ushakov.bike_workouts.util.calculateWorkoutDuration
 import io.ushakov.bike_workouts.util.distanceToKm
-import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
 import io.ushakov.bike_workouts.util.mpsToKmh
 import java.lang.Float.min
 import java.util.*
@@ -52,6 +53,7 @@ fun WorkoutDetails(workoutId: Long?, onBackPress: () -> Unit) {
     val heartRates = workoutComplete?.heartRates
     val summary = workoutComplete?.summary
     val workout = workoutComplete?.workout
+    val durations = workoutComplete?.duration
 
     if (
         locations == null ||
@@ -91,8 +93,7 @@ fun WorkoutDetails(workoutId: Long?, onBackPress: () -> Unit) {
                 Divider()
 
                 DurationDistanceRow(
-                    start = workout.startAt,
-                    end = workout.finishAt ?: Date(),
+                    durations ?: listOf(),
                     distance = summary.distance
                 )
                 Divider()
@@ -237,11 +238,12 @@ fun InfoRow(
 
 @Composable
 fun DurationDistanceRow(
-    start: Date,
-    end: Date,
+    durations: List<Duration>,
     distance: Double,
 ) {
-    val diff = getDifferenceBetweenDates(start, end)
+    val duration: Long = calculateWorkoutDuration(durations)
+    val diff = DateDifference.fromDuration(duration)
+
 
     InfoRow(titleStart = stringResource(R.string.workout_details__duration_title),
         valueStart = "${diff.hours}:${

@@ -2,7 +2,6 @@ package io.ushakov.bike_workouts.ui.views.in_workout.components
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
@@ -24,7 +23,6 @@ import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.Typography
 import io.ushakov.bike_workouts.util.distanceToKm
-import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
 import io.ushakov.bike_workouts.util.mpsToKmh
 import java.util.*
 
@@ -165,7 +163,7 @@ fun formatInfoItem(
             formattedSpeed to stringResource(R.string.in_workout__info_row__speed__title)
         }
         InfoItem.Time -> {
-            val time = rememberWorkoutTime(workout.startAt) ?: "--.--.--"
+            val time = rememberWorkoutTime(workout.startAt)
 
             time to stringResource(R.string.in_workout__info_row__time__title)
         }
