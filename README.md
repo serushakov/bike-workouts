@@ -60,7 +60,7 @@ After installing Android Studio successfully in your system, you can proceed.
 1. Follow [this](https://developers.google.com/maps/documentation/android-sdk/get-api-key) documentation to generate and add your API key for the maps.
 1. Head over to [this](https://developer.android.com/studio/run) link for further instructions on how to run project.
 
-#### NOTE: Google Play is needed in order to run this app so install it on your device (either device real or emulator)
+#### NOTE: Google Play is needed in order to run this app so install it on your device (either on real or emulator)
 
 ## Database schema
 <img src="screens/database-schema.png" width="800">
