@@ -19,6 +19,9 @@ interface LocationDao {
     @Insert
     suspend fun insert(location: Location): Long
 
+    @Query("SELECT avg(speed) FROM location WHERE location.workoutId = :workoutId")
+    suspend fun getWorkoutAverageSpeed(workoutId: Long): Double?
+
 
     @Query("SELECT * FROM location WHERE location.workoutId=:workoutId")
     fun getLocationsForWorkout(workoutId: Long): LiveData<List<Location>>

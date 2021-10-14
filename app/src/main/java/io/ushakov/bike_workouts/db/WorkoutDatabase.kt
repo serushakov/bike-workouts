@@ -20,7 +20,8 @@ import kotlin.random.Random
     (Workout::class),
     (Location::class),
     (HeartRate::class),
-    (Summary::class)], version = 1, exportSchema = false)
+    (Summary::class),
+    (Duration::class)], version = 1, exportSchema = false)
 @TypeConverters(DatabaseTypeConverters::class)
 abstract class WorkoutDatabase : RoomDatabase() {
 
@@ -29,6 +30,7 @@ abstract class WorkoutDatabase : RoomDatabase() {
     abstract fun locationDoa(): LocationDao
     abstract fun heartRateDao(): HeartRateDao
     abstract fun summaryDao(): SummaryDao
+    abstract fun durationDao(): DurationDao
 
     companion object {
         @Volatile

@@ -1,8 +1,9 @@
-package io.ushakov.bike_workouts
+package io.ushakov.bike_workouts.data_engine
 
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
@@ -21,6 +22,7 @@ class HeartRateDeviceManager(context: Context) {
     val isPairing by lazy { MutableLiveData(false) }
     val device by lazy { MutableLiveData<RxBleDevice?>(null) }
     val isConnected by lazy { MutableLiveData(false) }
+    var triedReconnecting = false
 
     companion object {
         private var instance: HeartRateDeviceManager? = null
@@ -62,16 +64,33 @@ class HeartRateDeviceManager(context: Context) {
                 isPairing.value = false
                 isConnected.value = true
             }
-            RxBleConnection.RxBleConnectionState.DISCONNECTED -> isConnected.value = false
+            RxBleConnection.RxBleConnectionState.DISCONNECTED -> {
+                isConnected.value = false
+                tryReconnect()
+            }
             else -> Unit
         }
     }
 
+    private fun tryReconnect() {
+        if(!triedReconnecting) {
+            val address = device.value?.macAddress ?: return
+
+            setupDevice(address, timeout = 10) {
+                Log.d("DBG", "could not reconnect")
+            }
+            triedReconnecting = true
+        }
+
+    }
+
     fun setupDevice(
         address: String,
+        timeout: Long = 5,
         error: (Throwable) -> Unit,
     ): Disposable {
         val device = bleClient.getBleDevice(address)
+        triedReconnecting = false
 
         connectionDisposable =
             device.observeConnectionStateChanges()?.subscribe {
@@ -81,7 +100,7 @@ class HeartRateDeviceManager(context: Context) {
             }
 
         return device
-            .establishConnection(false, Timeout(5, TimeUnit.SECONDS))
+            .establishConnection(false, Timeout(timeout, TimeUnit.SECONDS))
             .flatMap {
                 Handler(Looper.getMainLooper()).post {
                     this.device.value = device

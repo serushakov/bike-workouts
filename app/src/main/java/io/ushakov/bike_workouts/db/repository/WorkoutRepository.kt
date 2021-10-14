@@ -68,4 +68,8 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
     suspend fun update(workoutId: Long, finishTime: Date) = withContext(Dispatchers.IO) {
         return@withContext workoutDao.update(workoutId, finishTime)
     }
+
+    suspend fun getWorkoutDurations(workoutId: Long) = withContext(Dispatchers.IO) {
+        return@withContext workoutDao.getWorkoutDurations(workoutId)
+    }
 }

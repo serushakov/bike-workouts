@@ -2,7 +2,6 @@ package io.ushakov.bike_workouts.ui.views.in_workout.components
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
@@ -17,13 +16,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.ushakov.bike_workouts.R
+import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.db.entity.HeartRate
 import io.ushakov.bike_workouts.db.entity.Location
 import io.ushakov.bike_workouts.db.entity.Summary
 import io.ushakov.bike_workouts.db.entity.Workout
 import io.ushakov.bike_workouts.ui.theme.Typography
 import io.ushakov.bike_workouts.util.distanceToKm
-import io.ushakov.bike_workouts.util.getDifferenceBetweenDates
 import io.ushakov.bike_workouts.util.mpsToKmh
 import java.util.*
 
@@ -204,22 +203,14 @@ fun CenterInfoItem(title: String, text: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun rememberWorkoutTime(startTime: Date): String {
-    fun calculateTime(): String {
-        val diff = getDifferenceBetweenDates(startTime, Date())
-
-        return "${diff.hours}:${
-            diff.minutes.toString().padStart(2, '0')
-        }:${diff.seconds.toString().padStart(2, '0')}"
-    }
-
-    var time by remember { mutableStateOf(calculateTime()) }
+    var time by remember { mutableStateOf(WorkoutDataProcessor.getInstance().calculateTime()) }
 
     DisposableEffect(startTime) {
         val handler = Handler(Looper.getMainLooper())
 
         val runnable = object : Runnable {
             override fun run() {
-                time = calculateTime()
+                time = WorkoutDataProcessor.getInstance().calculateTime()
                 handler.postDelayed(this, 1000)
             }
         }

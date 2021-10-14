@@ -1,14 +1,13 @@
 package io.ushakov.bike_workouts
 
 import android.Manifest
-import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.*
 import androidx.compose.foundation.layout.*
@@ -23,13 +22,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
+import io.ushakov.bike_workouts.data_engine.HeartRateDeviceManager
 import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
+import io.ushakov.bike_workouts.services.WorkoutService
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.*
 import io.ushakov.bike_workouts.ui.views.first_time_setup.FirstTimeSetup
 import io.ushakov.bike_workouts.ui.views.first_time_setup.components.Permissions
 import io.ushakov.bike_workouts.ui.views.in_workout.InWorkout
+import io.ushakov.bike_workouts.ui.views.workout_details.WorkoutDetails
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.SAVED_DEVICE_SHARED_PREFERENCES_KEY
 import io.ushakov.bike_workouts.util.Constants.USER_ID_SHARED_PREFERENCES_KEY
@@ -65,8 +67,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         stopWorkoutService()
-        //TODO Remember to remove it. Dummy HR readings are running in this scope.
-        CoroutineScope(Dispatchers.IO).cancel("MainActivity is closed")
+        WorkoutDataProcessor.getInstance().pauseWorkout()
         super.onDestroy()
     }
 
@@ -87,6 +88,7 @@ class MainActivity : ComponentActivity() {
                 saveUserId(newUserId)
                 userId = newUserId
                 isFirstTimeSetupDone = true
+                application.initializeWorkoutDataProcessor(newUserId)
             }
         } else if (!locationPermissionState.hasPermission && !arePermissionsReallyGranted) {
             // Re-request permissions if app does not have them any more
@@ -103,6 +105,7 @@ class MainActivity : ComponentActivity() {
     fun View(userId: Long) {
         val navController = rememberNavController()
         val application = rememberApplication()
+        val scope = rememberCoroutineScope()
 
         NavigateToUnfinishedWorkout(navController)
         StartWorkoutService()
@@ -140,8 +143,15 @@ class MainActivity : ComponentActivity() {
                 arguments = listOf(navArgument("workoutId") {
                     type = NavType.LongType
                 })) { backStackEntry ->
-                WorkoutDetails(navController,
-                    workoutId = backStackEntry.arguments?.getLong("workoutId"))
+
+                WorkoutDetails(workoutId = backStackEntry.arguments?.getLong("workoutId")) {
+                    if (navController.backQueue.any { it.destination.route == "in_workout" }) {
+                        navController.popBackStack(route = "main", false)
+                        navController.navigate("main")
+                    } else {
+                        navController.popBackStack()
+                    }
+                }
             }
             composable("in_workout") {
                 val activeWorkout = rememberActiveWorkout() ?: return@composable
@@ -166,16 +176,30 @@ class MainActivity : ComponentActivity() {
                     onWorkoutResumeClick = {
                         WorkoutDataProcessor.getInstance().resumeWorkout()
                     },
-                    onWorkoutStopClick = { WorkoutDataProcessor.getInstance().stopWorkout() }
+                    onWorkoutStopClick = {
+                        scope.launch {
+                            val workoutId = WorkoutDataProcessor.getInstance().stopWorkout()
+                            if (workoutId != null) {
+                                navController.navigate("workout_details/$workoutId")
+                            } else {
+                                notifyWorkoutNotSaved()
+                            }
+                        }
+                    }
                 )
             }
         }
     }
 
+    private fun notifyWorkoutNotSaved() {
+        Toast.makeText(applicationContext,
+            getString(R.string.toast__workout_ignored),
+            Toast.LENGTH_LONG).show()
+    }
+
     private fun startWorkout() {
         CoroutineScope(Dispatchers.IO).launch {
             val user = (application as WorkoutApplication).userRepository.getUserById(1)
-
             WorkoutDataProcessor.getInstance()
                 .createWorkout(user, "workout title", 5)
         }
@@ -204,12 +228,8 @@ class MainActivity : ComponentActivity() {
 
         LaunchedEffect(key1 = activeWorkout?.id) {
             if (activeWorkout == null) {
-                Log.d("DBG", "Something stops activity here")
-
                 stopWorkoutService()
             } else {
-                Log.d("DBG", "Something starts activity here")
-
                 startWorkoutService()
             }
         }
@@ -246,22 +266,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun stopWorkoutService() {
-        Log.d("DBG", "Stopping Workout Service.......")
         val intentStop = Intent(this, WorkoutService::class.java)
         stopService(intentStop)
-        Log.d("DBG", "Workout Service stopped")
 
     }
 
     private fun startWorkoutService() {
-        //startService(Intent(this, WorkoutService::class.java))
-        Log.d("DBG", "Starting Workout Service.......")
-
         val workoutServiceIntent = Intent(this, WorkoutService::class.java)
-        workoutServiceIntent.putExtra("SOME_EXTRA_INPUT", "Todo See later")
         ContextCompat.startForegroundService(this, workoutServiceIntent)
-        Log.d("DBG", "Workout Service started")
-
     }
 
 

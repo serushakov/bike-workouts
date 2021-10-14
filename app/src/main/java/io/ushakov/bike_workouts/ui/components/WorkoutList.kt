@@ -43,9 +43,10 @@ fun WorkoutList(
                     workoutSummary.summary!!.kiloCalories
                 ) { onSelect(workoutSummary) }
 
-                if (index != workoutSummaryList.size - 1) {
-                    Spacer(Modifier.height(8.dp))
-                }
+
+            }
+            if (index != workoutSummaryList.size - 1) {
+                Spacer(Modifier.height(8.dp))
             }
         }
     }

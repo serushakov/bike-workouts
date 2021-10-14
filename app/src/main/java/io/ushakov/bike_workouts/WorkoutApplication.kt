@@ -5,6 +5,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.SharedPreferences
+import io.ushakov.bike_workouts.data_engine.HeartRateDeviceManager
 import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.db.WorkoutDatabase
 import io.ushakov.bike_workouts.db.entity.User
@@ -28,29 +29,35 @@ class WorkoutApplication : Application() {
     val locationRepository by lazy { LocationRepository(database.locationDoa()) }
     val heartRateRepository by lazy { HeartRateRepository(database.heartRateDao()) }
     val summaryRepository by lazy { SummaryRepository(database.summaryDao()) }
+    val durationRepository by lazy { DurationRepository(database.durationDao()) }
 
     var user: User? = null
 
-    // Used by workout service
     override fun onCreate() {
         super.onCreate()
-        HeartRateDeviceManager.initialize(this)
-        // Has to be blocking because it should initialize before the rest
-        // of the application
 
+        HeartRateDeviceManager.initialize(this)
         val userId = getSavedUserId()
 
         if (userId != null) {
-            runBlocking {
-                user = userRepository.getUserById(userId)
-                if (user == null) return@runBlocking
-
-                initializeWorkoutDataProcessor(user!!)
-            }
+            initializeWorkoutDataProcessor(userId)
         }
         createNotificationChannel()
     }
 
+    fun initializeWorkoutDataProcessor(userId: Long) {
+        // Has to be blocking because it should initialize before the rest
+        // of the application
+        runBlocking {
+            // This request goes into coroutine, user might be null
+            user = userRepository.getUserById(userId)
+            if (user == null) {
+                return@runBlocking
+            }
+
+            initializeWorkoutDataProcessor(user!!)
+        }
+    }
 
     private suspend fun initializeWorkoutDataProcessor(user: User) {
         WorkoutDataProcessor.initialize(
@@ -58,19 +65,23 @@ class WorkoutApplication : Application() {
             locationRepository = locationRepository,
             heartRateRepository = heartRateRepository,
             summaryRepository = summaryRepository,
+            durationRepository = durationRepository,
             coroutineScope = applicationScope
         )
 
-        val activeWorkout = workoutRepository.getUnfinishedWorkout()
+        val workoutDuration = workoutRepository.getUnfinishedWorkout()
 
-        if (activeWorkout != null) {
+        if (workoutDuration != null) {
+            val activeWorkout = workoutDuration.workout
+            val activeDuration = workoutDuration.duration?.last()
+            if (activeWorkout != null ) {
+                val summary = summaryRepository.getSummaryForWorkout(activeWorkout.id)
 
-            val summary = summaryRepository.getSummaryForWorkout(activeWorkout.id)
-
-            if (summary == null) {
-                workoutRepository.delete(workout = activeWorkout)
-            } else {
-                WorkoutDataProcessor.getInstance().restoreWorkout(user, activeWorkout, summary)
+                if (summary == null) {
+                    workoutRepository.delete(workout = activeWorkout)
+                } else {
+                    WorkoutDataProcessor.getInstance().restoreWorkout(user, activeWorkout, summary, activeDuration)
+                }
             }
         }
 

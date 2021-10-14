@@ -77,4 +77,20 @@ data class WorkoutComplete(
         entityColumn = "workoutId"
     )
     var summary: Summary? = null,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "workoutId"
+    )
+    var duration: List<Duration>? = null
 )
+
+class WorkoutDuration {
+    @Embedded
+    var workout: Workout? = null
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "workoutId"
+    )
+    var duration: List<Duration>? = null
+}
