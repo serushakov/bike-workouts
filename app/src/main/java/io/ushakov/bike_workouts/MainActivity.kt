@@ -140,8 +140,15 @@ class MainActivity : ComponentActivity() {
                 arguments = listOf(navArgument("workoutId") {
                     type = NavType.LongType
                 })) { backStackEntry ->
-                WorkoutDetails(navController,
-                    workoutId = backStackEntry.arguments?.getLong("workoutId"))
+
+                WorkoutDetails(workoutId = backStackEntry.arguments?.getLong("workoutId")) {
+                    if (navController.backQueue.any { it.destination.route == "in_workout" }) {
+                        navController.popBackStack(route = "main", false)
+                        navController.navigate("main")
+                    } else {
+                        navController.popBackStack()
+                    }
+                }
             }
             composable("in_workout") {
                 val activeWorkout = rememberActiveWorkout() ?: return@composable
@@ -182,7 +189,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun notifyWorkoutNotSaved() {
-        Toast.makeText(applicationContext,getString(R.string.toast__workout_ignored), Toast.LENGTH_LONG).show();
+        Toast.makeText(applicationContext,
+            getString(R.string.toast__workout_ignored),
+            Toast.LENGTH_LONG).show();
     }
 
     private fun startWorkout() {

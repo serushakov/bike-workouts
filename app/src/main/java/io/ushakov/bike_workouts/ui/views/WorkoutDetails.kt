@@ -1,5 +1,6 @@
 package io.ushakov.bike_workouts.ui.views
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -40,7 +41,7 @@ import java.lang.Float.min
 import java.util.*
 
 @Composable
-fun WorkoutDetails(navController: NavController, workoutId: Long?) {
+fun WorkoutDetails(workoutId: Long?, onBackPress: () -> Unit) {
     val application = LocalContext.current.applicationContext as WorkoutApplication
     val workoutComplete by application.workoutRepository.getCompleteWorkoutById(workoutId ?: return)
         .observeAsState()
@@ -60,6 +61,9 @@ fun WorkoutDetails(navController: NavController, workoutId: Long?) {
     val scrollState = rememberScrollState()
 
 
+    BackHandler {
+        onBackPress()
+    }
     Column(
         Modifier
             .fillMaxSize()
@@ -71,7 +75,7 @@ fun WorkoutDetails(navController: NavController, workoutId: Long?) {
         }) {
             WorkoutMap(locations = locations, userLocation = null, modifier = Modifier
                 .height(300.dp))
-            BackButton(navController)
+            BackButton(onBackPress)
         }
 
         Surface(
@@ -123,12 +127,12 @@ fun WorkoutDetails(navController: NavController, workoutId: Long?) {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BackButton(navController: NavController) {
+fun BackButton(onBackPress: () -> Unit) {
 
     Surface(
         shape = CircleShape,
         onClick = {
-            navController.popBackStack()
+            onBackPress()
         },
         role = Role.Button,
         elevation = 12.dp,

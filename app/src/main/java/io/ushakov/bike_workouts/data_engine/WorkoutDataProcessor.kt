@@ -1,7 +1,6 @@
 package io.ushakov.bike_workouts.data_engine
 
 import android.location.Location
-import android.util.Log
 import io.ushakov.bike_workouts.db.entity.*
 import io.ushakov.bike_workouts.db.repository.*
 import io.ushakov.bike_workouts.util.Constants
