@@ -22,13 +22,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
+import io.ushakov.bike_workouts.data_engine.HeartRateDeviceManager
 import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.data_engine.WorkoutDataReceiver
+import io.ushakov.bike_workouts.services.WorkoutService
 import io.ushakov.bike_workouts.ui.theme.BikeWorkoutsTheme
 import io.ushakov.bike_workouts.ui.views.*
 import io.ushakov.bike_workouts.ui.views.first_time_setup.FirstTimeSetup
 import io.ushakov.bike_workouts.ui.views.first_time_setup.components.Permissions
 import io.ushakov.bike_workouts.ui.views.in_workout.InWorkout
+import io.ushakov.bike_workouts.ui.views.workout_details.WorkoutDetails
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.SAVED_DEVICE_SHARED_PREFERENCES_KEY
 import io.ushakov.bike_workouts.util.Constants.USER_ID_SHARED_PREFERENCES_KEY
@@ -191,7 +194,7 @@ class MainActivity : ComponentActivity() {
     private fun notifyWorkoutNotSaved() {
         Toast.makeText(applicationContext,
             getString(R.string.toast__workout_ignored),
-            Toast.LENGTH_LONG).show();
+            Toast.LENGTH_LONG).show()
     }
 
     private fun startWorkout() {

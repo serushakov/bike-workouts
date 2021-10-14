@@ -5,6 +5,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.SharedPreferences
+import io.ushakov.bike_workouts.data_engine.HeartRateDeviceManager
 import io.ushakov.bike_workouts.data_engine.WorkoutDataProcessor
 import io.ushakov.bike_workouts.db.WorkoutDatabase
 import io.ushakov.bike_workouts.db.entity.User

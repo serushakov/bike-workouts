@@ -1,8 +1,5 @@
 package io.ushakov.bike_workouts.data_engine
 
-import io.ushakov.bike_workouts.db.entity.User
-import io.ushakov.bike_workouts.db.entity.Workout
-
 const val BodyWeightMultiplier = 3.5
 const val PerMinuteDivider = 200
 

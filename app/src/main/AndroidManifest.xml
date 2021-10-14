@@ -32,7 +32,7 @@
             android:value="@integer/google_play_services_version" />
 
         <service
-            android:name=".WorkoutService"
+            android:name=".services.WorkoutService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location" />

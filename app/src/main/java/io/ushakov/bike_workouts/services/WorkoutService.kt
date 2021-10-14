@@ -1,4 +1,4 @@
-package io.ushakov.bike_workouts
+package io.ushakov.bike_workouts.services
 
 import android.Manifest
 import android.app.Notification
@@ -17,6 +17,10 @@ import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.*
 import io.reactivex.disposables.Disposable
+import io.ushakov.bike_workouts.BuildConfig
+import io.ushakov.bike_workouts.MainActivity
+import io.ushakov.bike_workouts.R
+import io.ushakov.bike_workouts.data_engine.HeartRateDeviceManager
 import io.ushakov.bike_workouts.util.Constants.ACTION_BROADCAST
 import io.ushakov.bike_workouts.util.Constants.CHANNEL_ID
 import io.ushakov.bike_workouts.util.Constants.EXTRA_HEART_RATE
@@ -25,10 +29,7 @@ import io.ushakov.bike_workouts.util.Constants.SERVICE_NOTIFICATION_ID
 import io.ushakov.bike_workouts.util.Constants.SERVICE_REQUEST_CODE
 import io.ushakov.bike_workouts.util.Constants.UPDATE_INTERVAL_IN_MILLISECONDS
 
-//TODO move this service under service folder/module/package
 class WorkoutService : Service() {
-    //var mainHandler: Handler? = null
-
     private var fusedLocationClient: FusedLocationProviderClient? = null
     private var locationRequest: LocationRequest? = null
 

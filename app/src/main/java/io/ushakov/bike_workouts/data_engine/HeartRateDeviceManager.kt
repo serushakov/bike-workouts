@@ -1,4 +1,4 @@
-package io.ushakov.bike_workouts
+package io.ushakov.bike_workouts.data_engine
 
 import android.content.Context
 import android.os.Handler
@@ -22,6 +22,7 @@ class HeartRateDeviceManager(context: Context) {
     val isPairing by lazy { MutableLiveData(false) }
     val device by lazy { MutableLiveData<RxBleDevice?>(null) }
     val isConnected by lazy { MutableLiveData(false) }
+    var triedReconnecting = false
 
     companion object {
         private var instance: HeartRateDeviceManager? = null
@@ -72,11 +73,15 @@ class HeartRateDeviceManager(context: Context) {
     }
 
     private fun tryReconnect() {
-        val address = device.value?.macAddress ?: return
+        if(!triedReconnecting) {
+            val address = device.value?.macAddress ?: return
 
-        setupDevice(address, timeout = 10) {
-            Log.d("DBG", "could not reconnect")
+            setupDevice(address, timeout = 10) {
+                Log.d("DBG", "could not reconnect")
+            }
+            triedReconnecting = true
         }
+
     }
 
     fun setupDevice(
@@ -85,6 +90,7 @@ class HeartRateDeviceManager(context: Context) {
         error: (Throwable) -> Unit,
     ): Disposable {
         val device = bleClient.getBleDevice(address)
+        triedReconnecting = false
 
         connectionDisposable =
             device.observeConnectionStateChanges()?.subscribe {
