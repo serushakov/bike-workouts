@@ -65,7 +65,9 @@ fun optimizeHeartRateDataSet(
     for (i in 0..data.size step sizeDivider) {
         val items = data.slice(i..min(i + sizeDivider, data.lastIndex))
 
-        optimizedData.add(items.first().first to items.map { it.second }.average().toFloat())
+        if (items.isNotEmpty()) {
+            optimizedData.add(items.first().first to items.map { it.second }.average().toFloat())
+        }
     }
 
     optimizedData.add(data.last())

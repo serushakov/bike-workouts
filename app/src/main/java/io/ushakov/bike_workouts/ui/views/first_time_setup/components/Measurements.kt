@@ -151,6 +151,7 @@ fun NumberInputFieldWithError(
             value = value,
             onValueChange = onChange,
             label = { Text(label) },
+            singleLine = true,
             modifier = inputModifier
                 .fillMaxWidth(),
             keyboardOptions = KeyboardOptions(
