@@ -4,7 +4,7 @@
 
 This project is the outcome of a school course where we learn to develop android applications. At the end of the course we are given 4-weeks time to develop an Android app that will reflect our learning from the course.
 
-This app keep track of your cycling workouts and provide useful information on previous workouts such as statictics about heartrate at sertian location, etc. During the workout user has realtime information about workout like speed, distance, duration and heart rate.
+This app keep track of your cycling workouts and provide useful information on previous workouts such as statistics about heart rate at certain location, etc. During the workout user has realtime information about workout like speed, distance, duration and heart rate.
 
 
 ## Technologies
