@@ -13,4 +13,8 @@ class UserRepository(private val userDao: UserDao) {
     suspend fun getUserById(userId: Long) = withContext(Dispatchers.IO) {
         return@withContext userDao.getUserById(userId)
     }
+
+    suspend fun getUserWithWorkouts(userId: Long) = withContext(Dispatchers.IO) {
+        return@withContext userDao.getUserWithWorkouts(userId)
+    }
 }

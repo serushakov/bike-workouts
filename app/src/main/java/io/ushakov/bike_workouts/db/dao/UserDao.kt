@@ -1,11 +1,9 @@
 package io.ushakov.bike_workouts.db.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import io.ushakov.bike_workouts.db.entity.User
+import io.ushakov.bike_workouts.db.entity.UserWorkouts
 
 @Dao
 interface UserDao {
@@ -20,4 +18,8 @@ interface UserDao {
 
     @Query("SELECT * FROM USER WHERE id = :userId")
     suspend fun getUserById(userId: Long): User
+
+    @Transaction
+    @Query("SELECT * FROM USER WHERE id = :userId")
+    suspend fun getUserWithWorkouts(userId: Long): UserWorkouts?
 }
