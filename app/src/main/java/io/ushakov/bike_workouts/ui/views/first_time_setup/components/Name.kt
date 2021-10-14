@@ -50,6 +50,7 @@ fun Name(initialName: String?, onNameSubmit: (name: String) -> Unit) {
                     onValueChange = { nameInputValue = it },
                     label = { Text(stringResource(R.string.intro__name__input_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Words,
                         autoCorrect = false,

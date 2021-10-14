@@ -55,4 +55,6 @@
     <string name="workout_details__heartrate_value">"%d"bpm</string>
     <string name="workout_details__elevation_value">"%d"m🔺 "%d"m🔻</string>
     <string name="workout_details__speed_value">"%.1f"km/h</string>
+    <string name="drawer__background">Drawer background image with cyclists</string>
+    <string name="drawer__account">Account icon</string>
 </resources>
