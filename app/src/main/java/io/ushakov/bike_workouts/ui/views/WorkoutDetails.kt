@@ -21,9 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.HeartRate
 import io.ushakov.bike_workouts.db.entity.Location
@@ -105,19 +107,13 @@ fun WorkoutDetails(workoutId: Long?, onBackPress: () -> Unit) {
                 Divider()
 
                 Row(Modifier.padding(all = 16.dp)) {
-                    SectionTitleText("Heart rate")
+                    SectionTitleText(stringResource(R.string.workout_details__heartrate_title))
                     Spacer(Modifier.height(100.dp))
                 }
                 Divider()
 
                 Row(Modifier.padding(all = 16.dp)) {
-                    SectionTitleText("Elevation")
-                    Spacer(Modifier.height(100.dp))
-                }
-                Divider()
-
-                Row(Modifier.padding(all = 16.dp)) {
-                    SectionTitleText("Something else")
+                    SectionTitleText(stringResource(R.string.workout_details__elevation_title))
                     Spacer(Modifier.height(100.dp))
                 }
             }
@@ -139,7 +135,9 @@ fun BackButton(onBackPress: () -> Unit) {
         contentColor = if (isSystemInDarkTheme()) MaterialTheme.colors.onSurface else MaterialTheme.colors.primary,
         modifier = Modifier.offset(x = 16.dp, y = 16.dp)
     ) {
-        Icon(Icons.Default.ArrowBack, "Back", Modifier.padding(all = 8.dp))
+        Icon(Icons.Default.ArrowBack,
+            stringResource(R.string.back_button_label),
+            Modifier.padding(all = 8.dp))
     }
 }
 
@@ -168,7 +166,7 @@ fun Header(workout: Workout) {
         ) {
             Text(
                 modifier = Modifier.offset(y = (-5).dp),
-                text = "Cycling",
+                text = stringResource(R.string.workout_details__cycling_title),
                 style = Typography.h4,
             )
             TimeInterval(start = workout.startAt,
@@ -199,7 +197,7 @@ fun BicycleIcon() {
 
     Icon(
         Icons.Default.DirectionsBike,
-        contentDescription = "Bicycle image",
+        contentDescription = stringResource(R.string.workout_details__bicycle_icon),
         tint = if (darkTheme) MaterialTheme.colors.onSurface else Blue800,
         modifier = Modifier
             .size(40.dp)
@@ -245,12 +243,12 @@ fun DurationDistanceRow(
 ) {
     val diff = getDifferenceBetweenDates(start, end)
 
-    InfoRow(titleStart = "⏱Duration",
+    InfoRow(titleStart = stringResource(R.string.workout_details__duration_title),
         valueStart = "${diff.hours}:${
             diff.minutes.toString().padStart(2, '0')
         }:${diff.seconds.toString().padStart(2, '0')}",
-        titleEnd = "🗺Distance",
-        valueEnd = "${String.format("%.2f", distanceToKm(distance))}km")
+        titleEnd = stringResource(R.string.workout_details__distance_title),
+        valueEnd = stringResource(R.string.workout_details__distance_value, distanceToKm(distance)))
 }
 
 @Composable
@@ -260,10 +258,10 @@ fun CaloriesHeartRateRow(
 ) {
     val averageHr = heartRates.map { it.heartRate }.average().toInt()
 
-    InfoRow(titleStart = "🔥Burned Calories",
-        valueStart = "${kcal}kcal",
-        titleEnd = "❤️Average Heartrate",
-        valueEnd = "${averageHr}bpm")
+    InfoRow(titleStart = stringResource(R.string.workout_details__calories_title),
+        valueStart = stringResource(R.string.workout_details__calories_value, kcal),
+        titleEnd = stringResource(R.string.workout_details__average_hr_title),
+        valueEnd = stringResource(R.string.workout_details__heartrate_value, averageHr))
 }
 
 @Composable
@@ -274,8 +272,12 @@ fun ElevationSpeedRow(
     val maxElevation = elevations.maxOrNull()
     val minElevation = elevations.minOrNull()
 
-    InfoRow(titleStart = "🏔️Elevation",
-        valueStart = "${maxElevation}🔺 ${minElevation}🔻",
-        titleEnd = "🚴‍️Average speed",
-        valueEnd = "${String.format("%.1f", mpsToKmh(locations.map { it.speed }.average()))}km/h")
+    val averageSpeed = mpsToKmh(locations.map { it.speed }.average())
+
+    InfoRow(titleStart = stringResource(R.string.workout_details__elevation_updown_title),
+        valueStart = stringResource(R.string.workout_details__elevation_value,
+            maxElevation ?: 0,
+            minElevation ?: 0),
+        titleEnd = stringResource(R.string.workout_details__speed_title),
+        valueEnd = stringResource(R.string.workout_details__speed_value, averageSpeed))
 }

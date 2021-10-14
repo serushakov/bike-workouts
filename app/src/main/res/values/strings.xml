@@ -39,5 +39,20 @@
     <string name="main__history_icon_label">Workout history</string>
     <string name="main__account_icon_label">Account</string>
     <string name="toast__workout_ignored">Workout was not saved because there wasn\'t enough activity during workout</string>
-
+    <string name="workout_details__heartrate_title">Heart rate</string>
+    <string name="workout_details__elevation_title">Elevation</string>
+    <string name="back_button_label">Back</string>
+    <string name="workout_details__cycling_title">Cycling</string>
+    <string name="workout_details__bicycle_icon">Bicycle image</string>
+    <string name="workout_details__duration_title">⏱Duration</string>
+    <string name="workout_details__distance_title">🗺Distance</string>
+    <string name="workout_details__calories_title">🔥Burned Calories</string>
+    <string name="workout_details__average_hr_title">❤️Average Heartrate</string>
+    <string name="workout_details__elevation_updown_title">🏔️Elevation</string>
+    <string name="workout_details__speed_title">🚴‍️Average speed</string>
+    <string name="workout_details__distance_value">"%.2f"km</string>
+    <string name="workout_details__calories_value">"%d"kcal</string>
+    <string name="workout_details__heartrate_value">"%d"bpm</string>
+    <string name="workout_details__elevation_value">"%d"m🔺 "%d"m🔻</string>
+    <string name="workout_details__speed_value">"%.1f"km/h</string>
 </resources>
