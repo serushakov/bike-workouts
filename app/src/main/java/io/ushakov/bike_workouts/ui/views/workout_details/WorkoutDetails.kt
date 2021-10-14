@@ -1,6 +1,5 @@
-package io.ushakov.bike_workouts.ui.views
+package io.ushakov.bike_workouts.ui.views.workout_details
 
-import android.graphics.Color
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -25,12 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.charts.ScatterChart
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.*
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import io.ushakov.bike_workouts.R
 import io.ushakov.bike_workouts.WorkoutApplication
 import io.ushakov.bike_workouts.db.entity.Duration
@@ -123,9 +116,12 @@ fun WorkoutDetails(workoutId: Long?, onBackPress: () -> Unit) {
                 }
                 Divider()
 
-                Row(Modifier.padding(all = 16.dp)) {
+                Column(Modifier.padding(all = 16.dp)) {
                     SectionTitleText(stringResource(R.string.workout_details__elevation_title))
-                    Spacer(Modifier.height(100.dp))
+                    ElevationGraph(locations,
+                        Modifier
+                            .fillMaxWidth()
+                            .height(200.dp))
                 }
             }
         }
@@ -294,44 +290,4 @@ fun ElevationSpeedRow(
         valueEnd = stringResource(R.string.workout_details__speed_value, averageSpeed))
 }
 
-class TimeAxisValueFormatter : IndexAxisValueFormatter() {
 
-    override fun getFormattedValue(value: Float): String {
-        val date = Date(value.toLong() * 60000)
-
-        return android.text.format.DateFormat.format("HH:mm", date).toString()
-    }
-}
-
-@Composable
-fun HeartRateGraph(heartRates: List<HeartRate>, modifier: Modifier = Modifier) {
-    AndroidView(factory = { context -> ScatterChart(context) }, modifier) { scatterChart ->
-        scatterChart.setDrawBorders(false)
-        scatterChart.xAxis.valueFormatter = TimeAxisValueFormatter()
-        scatterChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
-        scatterChart.xAxis.textColor = Color.GRAY
-        scatterChart.xAxis.axisLineColor = Color.GRAY
-        scatterChart.xAxis.labelCount = 5
-        scatterChart.xAxis.isGranularityEnabled = true
-
-        if (heartRates.isNotEmpty()) {
-            scatterChart.xAxis.axisMinimum = heartRates.first().timestamp.time.div(60000).toFloat()
-            scatterChart.xAxis.axisMaximum = heartRates.last().timestamp.time.div(60000).toFloat()
-        }
-
-        scatterChart.description = null
-        scatterChart.legend.isEnabled = false
-
-
-        val data = heartRates.map {
-            Entry(it.timestamp.time.div(60000).toFloat(), it.heartRate.toFloat())
-        }
-
-        val dataSet = ScatterDataSet(data, null)
-        dataSet.setColor(Color.RED, 100)
-
-        val lineData = ScatterData(dataSet)
-        scatterChart.data = lineData
-        scatterChart.invalidate()
-    }
-}
