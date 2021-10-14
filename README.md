@@ -66,7 +66,7 @@ After installing Android Studio successfully in your system, you can proceed.
 <img src="screens/database-schema.png" width="400"> <img src="screens/database-schema.png" width="400">
 
 ## Copyrights and Licensing Information
-
+[GNU General Public License v3.0](/LICENSE)
 ## Contact Information
 
 ## Known Bugs
