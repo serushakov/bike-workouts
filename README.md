@@ -67,10 +67,9 @@ After installing Android Studio successfully in your system, you can proceed.
 
 ## Screenshots
 
-<img src="screens/database-schema.png" width="400"> <img src="screens/database-schema.png" width="400">
-<img src="screens/database-schema.png" width="400"> <img src="screens/database-schema.png" width="400">
-<img src="screens/database-schema.png" width="400"> <img src="screens/database-schema.png" width="400">
-<img src="screens/database-schema.png" width="400"> <img src="screens/database-schema.png" width="400">
+<img src="screens/home-screen.png" width="400"> <img src="screens/in-workout.png" width="400">
+<img src="screens/workout-details.png" width="400"> <img src="screens/workout-details-with-map.png" width="400">
+<img src="screens/workout-details-with-map-night-mode.png" width="400"> <img src="screens/real-workout.png" width="400">
 
 ## Copyrights and Licensing Information
 [GNU General Public License v3.0](/LICENSE)
