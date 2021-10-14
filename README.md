@@ -16,7 +16,7 @@ This app keep track of your cycling workouts and provide useful information on p
 1. [Android Broadcast Receiver](https://developer.android.com/guide/components/broadcasts)
 1. [Android Fuse Location Provider API](https://developers.google.com/location-context/fused-location-provider/)
 1. [Room](https://developer.android.com/jetpack/androidx/releases/room)
-1. [What else?]
+
 
 
 ## Feature List
@@ -74,7 +74,6 @@ After installing Android Studio successfully in your system, you can proceed.
 
 ## Copyrights and Licensing Information
 [GNU General Public License v3.0](/LICENSE)
-## Contact Information
 
 ## Known Bugs
 * Calorie calculation is a bit off
