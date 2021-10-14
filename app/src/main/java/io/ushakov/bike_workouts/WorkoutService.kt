@@ -54,9 +54,6 @@ class WorkoutService : Service() {
             stopSelf()
         }
 
-
-        Log.d("WorkoutService", "start")
-
         startHeartrateUpdates()
         generateForegroundNotification()
         startLocationUpdates()
@@ -65,7 +62,6 @@ class WorkoutService : Service() {
     }
 
     override fun onDestroy() {
-        Log.d("WorkoutService", "destroy")
         removeListeners()
         //Not sure if our stuff should be shutdown before calling parent onDestroy().
         super.onDestroy()
@@ -79,7 +75,7 @@ class WorkoutService : Service() {
             this,
             SERVICE_REQUEST_CODE,
             appNotificationIntent,
-            0
+            PendingIntent.FLAG_IMMUTABLE
         )
 
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)

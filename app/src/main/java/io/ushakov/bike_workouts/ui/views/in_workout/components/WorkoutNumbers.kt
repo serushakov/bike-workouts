@@ -165,7 +165,7 @@ fun formatInfoItem(
             formattedSpeed to stringResource(R.string.in_workout__info_row__speed__title)
         }
         InfoItem.Time -> {
-            val time = rememberWorkoutTime(workout.startAt)
+            val time = rememberWorkoutTime(workout.startAt) ?: "--.--.--"
 
             time to stringResource(R.string.in_workout__info_row__time__title)
         }
@@ -205,14 +205,6 @@ fun CenterInfoItem(title: String, text: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun rememberWorkoutTime(startTime: Date): String {
-    /*fun calculateTime(): String {
-        val diff = getDifferenceBetweenDates(startTime, Date())
-
-        return "${diff.hours}:${
-            diff.minutes.toString().padStart(2, '0')
-        }:${diff.seconds.toString().padStart(2, '0')}"
-    }*/
-
     var time by remember { mutableStateOf(WorkoutDataProcessor.getInstance().calculateTime()) }
 
     DisposableEffect(startTime) {

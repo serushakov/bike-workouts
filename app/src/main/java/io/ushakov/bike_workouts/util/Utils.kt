@@ -35,8 +35,8 @@ fun getDifferenceBetweenDates(date1: Date, date2: Date): DateDifference {
 
 }
 
-fun getDifferenceBetweenDates(startTimeInMicroSeconds: Long, stopTimeInMicroSeconds: Long): DateDifference {
-    val millisecondsDiff = stopTimeInMicroSeconds - startTimeInMicroSeconds
+fun getDifferenceBetweenDates(startTimeInMilliSeconds: Long, stopTimeInMilliSeconds: Long): DateDifference {
+    val millisecondsDiff = stopTimeInMilliSeconds - startTimeInMilliSeconds
     val seconds: Long = millisecondsDiff / 1000
     val minutes = seconds / 60
     val hours = minutes / 60
@@ -52,9 +52,8 @@ fun getDifferenceBetweenDates(startTimeInMicroSeconds: Long, stopTimeInMicroSeco
 
 }
 
-fun getDifferenceBetweenDates(stopTimeInMicroSeconds: Long): DateDifference {
-    //val millisecondsDiff = stopTimeInMicroSeconds - startTimeInMicroSeconds
-    val seconds: Long = stopTimeInMicroSeconds / 1000
+fun getDifferenceBetweenDates(stopTimeMilliseconds: Long): DateDifference {
+    val seconds: Long = stopTimeMilliseconds / 1000
     val minutes = seconds / 60
     val hours = minutes / 60
 
