@@ -1,4 +1,4 @@
-# Bike Workout
+# Bike Workouts
 
 ## Project Overview
 
