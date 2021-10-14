@@ -88,7 +88,6 @@ class WorkoutDataProcessor(
             lastSpeed = speed
         }
 
-
         coroutineScope.launch(Dispatchers.IO) {
             if (currentWorkoutDistance == null) {
                 val summary = summaryRepository.getSummaryForWorkout(workout.id)
@@ -285,7 +284,7 @@ class WorkoutDataProcessor(
         activeWorkout = null
         activeDuration = null
         totalWorkoutDuration = 0L
-        currentWorkoutDistance = 0.0
+        currentWorkoutDistance = null
         workoutCalories = 0
         lastSpeed = null
     }
