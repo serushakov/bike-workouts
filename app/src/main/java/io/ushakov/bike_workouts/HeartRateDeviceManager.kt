@@ -3,6 +3,7 @@ package io.ushakov.bike_workouts
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
@@ -62,13 +63,25 @@ class HeartRateDeviceManager(context: Context) {
                 isPairing.value = false
                 isConnected.value = true
             }
-            RxBleConnection.RxBleConnectionState.DISCONNECTED -> isConnected.value = false
+            RxBleConnection.RxBleConnectionState.DISCONNECTED -> {
+                isConnected.value = false
+                tryReconnect()
+            }
             else -> Unit
+        }
+    }
+
+    private fun tryReconnect() {
+        val address = device.value?.macAddress ?: return
+
+        setupDevice(address, timeout = 10) {
+            Log.d("DBG", "could not reconnect")
         }
     }
 
     fun setupDevice(
         address: String,
+        timeout: Long = 5,
         error: (Throwable) -> Unit,
     ): Disposable {
         val device = bleClient.getBleDevice(address)
@@ -81,7 +94,7 @@ class HeartRateDeviceManager(context: Context) {
             }
 
         return device
-            .establishConnection(false, Timeout(5, TimeUnit.SECONDS))
+            .establishConnection(false, Timeout(timeout, TimeUnit.SECONDS))
             .flatMap {
                 Handler(Looper.getMainLooper()).post {
                     this.device.value = device
