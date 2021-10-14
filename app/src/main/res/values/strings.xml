@@ -38,5 +38,6 @@
     <string name="main__bluetooth_icon_label">Bluetooth</string>
     <string name="main__history_icon_label">Workout history</string>
     <string name="main__account_icon_label">Account</string>
+    <string name="toast__workout_ignored">Workout was not saved because there wasn\'t enough activity during workout</string>
 
 </resources>

@@ -1,14 +1,13 @@
 package io.ushakov.bike_workouts
 
 import android.Manifest
-import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.*
 import androidx.compose.foundation.layout.*
@@ -66,8 +65,6 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         stopWorkoutService()
         WorkoutDataProcessor.getInstance().pauseWorkout()
-        //TODO Remember to remove it. Dummy HR readings are running in this scope.
-        CoroutineScope(Dispatchers.IO).cancel("MainActivity is closed")
         super.onDestroy()
     }
 
@@ -105,6 +102,7 @@ class MainActivity : ComponentActivity() {
     fun View(userId: Long) {
         val navController = rememberNavController()
         val application = rememberApplication()
+        val scope = rememberCoroutineScope()
 
         NavigateToUnfinishedWorkout(navController)
         StartWorkoutService()
@@ -168,21 +166,28 @@ class MainActivity : ComponentActivity() {
                     onWorkoutResumeClick = {
                         WorkoutDataProcessor.getInstance().resumeWorkout()
                     },
-                    onWorkoutStopClick = { WorkoutDataProcessor.getInstance().stopWorkout() }
+                    onWorkoutStopClick = {
+                        scope.launch {
+                            val workoutId = WorkoutDataProcessor.getInstance().stopWorkout()
+                            if (workoutId != null) {
+                                navController.navigate("workout_details/$workoutId")
+                            } else {
+                                notifyWorkoutNotSaved()
+                            }
+                        }
+                    }
                 )
             }
         }
     }
 
-    //FIXME: When App starts for the first time and after user is created, If we press start button,
-    // this function gets call before WorkoutDataProcessor is initialized. In other words, WorkoutApplication.onCreate()
-    // does not gets call.
+    private fun notifyWorkoutNotSaved() {
+        Toast.makeText(applicationContext,getString(R.string.toast__workout_ignored), Toast.LENGTH_LONG).show();
+    }
+
     private fun startWorkout() {
         CoroutineScope(Dispatchers.IO).launch {
             val user = (application as WorkoutApplication).userRepository.getUserById(1)
-
-            Log.d("DBG", "Getting WorkoutDataProcessor instance")
-
             WorkoutDataProcessor.getInstance()
                 .createWorkout(user, "workout title", 5)
         }
@@ -211,12 +216,8 @@ class MainActivity : ComponentActivity() {
 
         LaunchedEffect(key1 = activeWorkout?.id) {
             if (activeWorkout == null) {
-                Log.d("DBG", "Something stops activity here")
-
                 stopWorkoutService()
             } else {
-                Log.d("DBG", "Something starts activity here")
-
                 startWorkoutService()
             }
         }
@@ -253,22 +254,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun stopWorkoutService() {
-        Log.d("DBG", "Stopping Workout Service.......")
         val intentStop = Intent(this, WorkoutService::class.java)
         stopService(intentStop)
-        Log.d("DBG", "Workout Service stopped")
 
     }
 
     private fun startWorkoutService() {
-        //startService(Intent(this, WorkoutService::class.java))
-        Log.d("DBG", "Starting Workout Service.......")
-
         val workoutServiceIntent = Intent(this, WorkoutService::class.java)
-        workoutServiceIntent.putExtra("SOME_EXTRA_INPUT", "Todo See later")
         ContextCompat.startForegroundService(this, workoutServiceIntent)
-        Log.d("DBG", "Workout Service started")
-
     }
 
 
