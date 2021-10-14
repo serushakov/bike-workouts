@@ -40,7 +40,9 @@ fun WorkoutColumnItem(
     val darkTheme = isSystemInDarkTheme()
 
     Card(Modifier
-        .fillMaxWidth(), shape = RoundedCornerShape(8.dp), elevation = 0.dp) {
+        .fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        elevation = if (darkTheme) 2.dp else 0.dp) {
         Row(
             modifier =
             Modifier

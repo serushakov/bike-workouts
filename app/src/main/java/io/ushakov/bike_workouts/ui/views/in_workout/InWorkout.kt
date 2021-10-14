@@ -56,51 +56,53 @@ fun InWorkout(
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
-        val lastLocation = locations.lastOrNull()
-        WorkoutMap(locations = locations,
-            userLocation = lastLocation?.latLng,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f))
-        Box(
-            Modifier.fillMaxWidth()
-        ) {
-            Surface(
-                Modifier
-                    .offset(y = (-16).dp)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+    Surface(elevation = 4.dp) {
+        Column(Modifier.fillMaxSize()) {
+            val lastLocation = locations.lastOrNull()
+            WorkoutMap(locations = locations,
+                userLocation = lastLocation?.latLng,
+                modifier = Modifier
                     .fillMaxWidth()
-                    .animateContentSize()
+                    .weight(1f))
+            Box(
+                Modifier.fillMaxWidth()
             ) {
-                WorkoutNumbers(workout, summary, heartRates, locations, isActive)
-            }
-
-            Box(modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(16.dp)) {
-
-                StopPlayButtons(
-                    onStopClick = onWorkoutStopClick,
-                    onPlayClick = {
-                        isActive = true
-                        onWorkoutResumeClick()
-                    },
-                    !isActive,
+                Surface(
                     Modifier
-                        .alpha(if (hideStopPlayButtons) 0f else 1f)
-                        .align(Alignment.BottomCenter)
-                )
-
-                if (hideStopPlayButtons) {
-                    PauseButton(modifier = Modifier
-                        .align(Alignment.BottomCenter)) {
-                        isActive = false
-                        onWorkoutPauseClick()
-                    }
+                        .offset(y = (-16).dp)
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                        .fillMaxWidth()
+                        .animateContentSize()
+                ) {
+                    WorkoutNumbers(workout, summary, heartRates, locations, isActive)
                 }
 
+                Box(modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(16.dp)) {
+
+                    StopPlayButtons(
+                        onStopClick = onWorkoutStopClick,
+                        onPlayClick = {
+                            isActive = true
+                            onWorkoutResumeClick()
+                        },
+                        !isActive,
+                        Modifier
+                            .alpha(if (hideStopPlayButtons) 0f else 1f)
+                            .align(Alignment.BottomCenter)
+                    )
+
+                    if (hideStopPlayButtons) {
+                        PauseButton(modifier = Modifier
+                            .align(Alignment.BottomCenter)) {
+                            isActive = false
+                            onWorkoutPauseClick()
+                        }
+                    }
+
+                }
             }
         }
     }

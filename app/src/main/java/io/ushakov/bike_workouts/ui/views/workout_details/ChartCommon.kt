@@ -11,6 +11,8 @@ fun styleXAxis(xAxis: XAxis, timeMultiplier: Int) {
     xAxis.valueFormatter = TimeAxisValueFormatter(timeMultiplier)
     xAxis.labelCount = 5
     xAxis.position = XAxis.XAxisPosition.BOTTOM
+    xAxis.textColor = Color.GRAY
+    xAxis.axisLineColor = Color.GRAY
 }
 
 fun styleYAxis(yAxis: YAxis) {

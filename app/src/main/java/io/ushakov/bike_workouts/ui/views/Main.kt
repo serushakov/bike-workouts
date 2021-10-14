@@ -130,7 +130,7 @@ fun MainAppBar(
             IconButton(onClick = { navController.navigate("bluetooth_settings") }) {
                 Icon(Icons.Default.Bluetooth,
                     stringResource(R.string.main__bluetooth_icon_label),
-                    tint = if (deviceConnected) Color.Green else Color.Unspecified)
+                    tint = if (deviceConnected) Color.Green else MaterialTheme.colors.onSurface)
             }
         },
         elevation = 0.dp
@@ -283,7 +283,8 @@ fun Drawer(userId: Long) {
                             Text(text = userWorkouts!!.user!!.firstName,
                                 style = Typography.h6)
                             Spacer(Modifier.height(4.dp))
-                            Text(text = "Workouts: ${userWorkouts?.workouts?.size ?: 0}", style = Typography.body2)
+                            Text(text = "Workouts: ${userWorkouts?.workouts?.size ?: 0}",
+                                style = Typography.body2)
                         }
                     }
                 }
