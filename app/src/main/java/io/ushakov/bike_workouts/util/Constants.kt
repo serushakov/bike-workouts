@@ -21,9 +21,9 @@ object Constants {
     const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 2000
     const val MINIMUM_WORKOUT_DURATION_S = 20
     const val DEFAULT_WORKOUT_ID: Long = 0
-    const val DEFAULT_WORKOUT_TITLE = "DEFAULT_WORKOUT_TITLE"   //TODO replace it with a suitable name later
+    const val DEFAULT_WORKOUT_TITLE = "DEFAULT_WORKOUT_TITLE"
     const val DEFAULT_WORKOUT_TYPE = "DEFAULT_WORKOUT_TYPE"
-    val DEFAULT_WORKOUT_FINISH_TIME = null               // TODO discuss and set some default date
+    val DEFAULT_WORKOUT_FINISH_TIME = null
     const val DEFAULT_USER_ID: Long = 0
     const val INITIAL_DISTANCE: Double = 0.0
     const val MINIMUM_AGE = 16

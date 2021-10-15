@@ -64,7 +64,6 @@ class WorkoutService : Service() {
 
     override fun onDestroy() {
         removeListeners()
-        //Not sure if our stuff should be shutdown before calling parent onDestroy().
         super.onDestroy()
     }
 
@@ -96,10 +95,6 @@ class WorkoutService : Service() {
         startForeground(SERVICE_NOTIFICATION_ID, notification)
     }
 
-    //TODO Add permission or use PermissionUtility
-    //App is working, if it crush or does not work, change location permission to always On
-    // FIXME Adjust permissions
-    //@SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
 
         if (ActivityCompat.checkSelfPermission(
@@ -110,16 +105,6 @@ class WorkoutService : Service() {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
-            //TODO Ask permission
-            //return false
             return
         }
 
@@ -152,7 +137,7 @@ class WorkoutService : Service() {
     }
 
     //Not private, may be used from outside
-    fun removeListeners() {
+    private fun removeListeners() {
         fusedLocationClient?.removeLocationUpdates(locationCallback)
         heartrateNotificationsDisposable?.dispose()
         removeNotification()
@@ -173,5 +158,4 @@ class WorkoutService : Service() {
         fusedLocationClient =
             LocationServices.getFusedLocationProviderClient(this)
     }
-
 }

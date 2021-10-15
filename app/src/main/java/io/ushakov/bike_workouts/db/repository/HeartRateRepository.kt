@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class HeartRateRepository(private val heartRateDao: HeartRateDao) {
-    //TODO all function should be suspended
+
     suspend fun insert(heartRate: HeartRate) = withContext(Dispatchers.IO) {
         return@withContext heartRateDao.insert(heartRate)
     }

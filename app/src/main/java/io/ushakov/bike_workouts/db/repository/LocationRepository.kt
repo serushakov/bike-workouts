@@ -5,7 +5,6 @@ import io.ushakov.bike_workouts.db.dao.LocationDao
 import io.ushakov.bike_workouts.db.entity.Location
 
 class LocationRepository(val locationDao: LocationDao) {
-    //TODO all function should be suspended
 
     suspend fun insert(location: Location): Long {
        return locationDao.insert(location)

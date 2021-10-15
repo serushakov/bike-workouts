@@ -25,13 +25,4 @@ data class Duration(
     val workoutId: Long,
     val startAt: Date,
     var stopAt: Date?
-) /*{
-
-    constructor(
-        @NotNull workoutId: Long,
-        @NotNull startAt: Date,
-        @Nullable stopAt: Date?
-    ) : this(
-        0, workoutId, startAt, stopAt
-    )
-}*/
+)

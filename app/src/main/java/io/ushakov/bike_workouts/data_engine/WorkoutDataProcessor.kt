@@ -23,7 +23,6 @@ class WorkoutDataProcessor(
 
     private var activeWorkout: Workout? = null
 
-    // TODO save this to state
     private var activeDuration: Duration? = null
     private var totalWorkoutDuration: Long = 0L
 

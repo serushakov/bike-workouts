@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class SummaryRepository(private val summaryDao: SummaryDao) {
-    //TODO all function should be suspended
+
     suspend fun insert(summary: Summary) = withContext(Dispatchers.IO) {
         return@withContext summaryDao.insert(summary)
     }

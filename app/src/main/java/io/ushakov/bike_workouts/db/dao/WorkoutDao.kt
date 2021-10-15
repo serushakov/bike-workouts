@@ -30,13 +30,6 @@ interface WorkoutDao {
     @Query("DELETE FROM workout WHERE id = :workoutId")
     suspend fun deleteById(workoutId: Long): Int
 
-    //@Query("SELECT * FROM WORKOUT WHERE WORKOUT.userId = :userId")
-    //fun getUserWorkout(userId: Long): UserWorkout
-
-    //get workoutHeartRate
-    //get workoutLocation
-    //get workoutSummary
-
     @Query("DELETE FROM WORKOUT")
     suspend fun deleteAll()
 
